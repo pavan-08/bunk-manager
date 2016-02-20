@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <view
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        class="android.support.v7.widget.Toolbar"
+        android:id="@+id/view6"
+        app:titleTextAppearance="@style/Toolbar"
+        app:title="Number of Lectures"
+        android:elevation="10dp"
+        android:background="@color/material_indigo"
+        android:layout_gravity="center_horizontal" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Lectures on Monday"
+        android:id="@+id/editText3"
+        android:inputType="number"
+        android:layout_gravity="center_horizontal" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText4"
+        android:inputType="number"
+
+        android:hint="Lectures on Tuesday"
+        android:layout_gravity="center_horizontal" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Lectures on Wednesday"
+        android:inputType="number"
+
+        android:id="@+id/editText5"
+        android:layout_gravity="center_horizontal" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:inputType="number"
+
+        android:layout_height="wrap_content"
+        android:hint="Lectures on Thursday"
+        android:id="@+id/editText6"
+        android:layout_gravity="center_horizontal" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Lectures on Friday"
+        android:inputType="number"
+
+        android:id="@+id/editText7"
+        android:layout_gravity="center_horizontal" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:inputType="number"
+
+        android:layout_height="wrap_content"
+        android:hint="Lectures on Saturday"
+        android:id="@+id/editText8"
+        android:layout_gravity="center_horizontal" />
+
+</LinearLayout>
