@@ -51,9 +51,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         View mView = getLayoutInflater().inflate(R.layout.fragment_layout,null);
-        AdView mAdView = (AdView) findViewById(R.id.adView);
+        /*AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        mAdView.loadAd(adRequest);*/
         StringBuffer stringBuffer =new StringBuffer();
         ArrayList<String> subs =new ArrayList<>();
         ArrayList<String> hour = new ArrayList<>();

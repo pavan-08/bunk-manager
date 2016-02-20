@@ -39,7 +39,7 @@ import java.util.Date;
 public class NavigationDrawerFragment extends Fragment {
     public static final String PREF_FILE_NAME="testpref";
     public static final String KEY_USER_LEARNED_DRAWER="user_learned_drawer";
-    InterstitialAd mInterstitialAd;
+    //InterstitialAd mInterstitialAd;
     private static RecyclerView mRecycler;
     private static RecyclerDrawerAdapter mAdapter;
     private ImageView img;
@@ -64,15 +64,15 @@ public class NavigationDrawerFragment extends Fragment {
         if(savedInstanceState!=null){
             mFromSavedInstanceState=true;
         }
-       mInterstitialAd = new InterstitialAd(getActivity());
+      /* mInterstitialAd = new InterstitialAd(getActivity());
         mInterstitialAd.setAdUnitId(getActivity().getResources().getString(R.string.interstitial_ad_unit_id));
-        requestNewInterstitial();
+        requestNewInterstitial();*/
     }
-    private void requestNewInterstitial(){
+    /*private void requestNewInterstitial(){
         AdRequest adRequest = new AdRequest.Builder()
                 .build();
         mInterstitialAd.loadAd(adRequest);
-    }
+    }*/
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -168,12 +168,12 @@ public class NavigationDrawerFragment extends Fragment {
                         }
                         break;
                     case 3:
-                       if (mInterstitialAd.isLoaded()) {
+                       /*if (mInterstitialAd.isLoaded()) {
                             mInterstitialAd.show();
-                        } else {
+                        } else {*/
                             Intent intent1 = new Intent(getActivity(), Settings.class);
                             getActivity().startActivity(intent1);
-                        }
+                        /*}*/
                         break;
                 }
                 mDrawerLayout.closeDrawer(containerView);
@@ -185,13 +185,13 @@ public class NavigationDrawerFragment extends Fragment {
             }
         }));
         mRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
-       mInterstitialAd.setAdListener(new AdListener() {
+       /*mInterstitialAd.setAdListener(new AdListener() {
             @Override
             public void onAdClosed() {
                 Intent intent1 = new Intent(getActivity(), Settings.class);
                 getActivity().startActivity(intent1);
             }
-        });
+        });*/
     }
 
     public void setUp(ViewPager viewPager, int fragmentId,CustomDrawerLayout drawerLayout, Toolbar toolbar) {
