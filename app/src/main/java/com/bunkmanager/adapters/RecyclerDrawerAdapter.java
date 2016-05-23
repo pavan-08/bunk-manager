@@ -40,7 +40,7 @@ public class RecyclerDrawerAdapter extends RecyclerView.Adapter<RecyclerDrawerAd
         items.add("Get Started");
         items.add("Subjects");
         items.add("Time Table");
-        items.add("Settings");
+        items.add("Notifications");
         Holder holder=new Holder(item);
         return holder;
     }

@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingBottom="30dp"
-                android:text="Let's Manage Some Attendance"
+                android:text="Let's make you a truancy expert"
                 android:id="@+id/introText"
                 android:layout_centerHorizontal="true"
                 android:layout_below="@+id/WelcomeText" />

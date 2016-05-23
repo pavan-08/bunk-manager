@@ -17,17 +17,27 @@
         app:titleTextAppearance="@style/Toolbar"
         app:title="Add Subject"
         android:layout_gravity="center_horizontal" />
-
-    <EditText
+    <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText"
-        android:hint="Enter Subject" />
-
-    <EditText
+        android:id="@+id/editTextWrapper">
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/editText"
+            android:backgroundTint="@color/accent"
+            android:hint="Enter Subject" />
+    </android.support.design.widget.TextInputLayout>
+    <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText2"
-        android:inputType="number"
-        android:hint="Enter percent attendance limit" />
+        android:id="@+id/editText2Wrapper">
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/editText2"
+            android:inputType="number"
+            android:backgroundTint="@color/accent"
+            android:hint="Enter percent attendance limit" />
+    </android.support.design.widget.TextInputLayout>
 </LinearLayout>

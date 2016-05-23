@@ -2,9 +2,9 @@ package com.bunkmanager.adapters;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -13,11 +13,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bunkmanager.MainActivity;
 import com.bunkmanager.R;
+import com.bunkmanager.entity.Subjects;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,7 +32,7 @@ import java.util.ArrayList;
 /**
  * Created by Pavan on 24/04/2015.
  */
-public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder>{
+public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecyclerAdapter.Holder>{
     private ArrayList<String> mListData = new ArrayList<>();
     private ArrayList<String> attend = new ArrayList<>();
     private ArrayList<String> miss = new ArrayList<>();
@@ -38,11 +40,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder
     private LayoutInflater mLayoutInflater;
     public Activity activity;
     public static int num;
-    public RecyclerAdapter(Activity act){
+    public SubjectRecyclerAdapter(Activity act){
         this.activity=act;
         mLayoutInflater=LayoutInflater.from(act);
     }
-    public RecyclerAdapter(Activity act, int number)
+    public SubjectRecyclerAdapter(Activity act, int number)
     {
         num=number;
         this.activity=act;
@@ -50,7 +52,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder
     }
 
     @Override
-    public RecyclerAdapter.Holder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public SubjectRecyclerAdapter.Holder onCreateViewHolder(ViewGroup parent, int viewType) {
             View row = mLayoutInflater.inflate(R.layout.recycler_layout, parent, false);
             Holder holder = new Holder(row);
             return holder;
@@ -58,7 +60,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder
 
 
     @Override
-    public void onBindViewHolder(final RecyclerAdapter.Holder holder, final int position) {
+    public void onBindViewHolder(final SubjectRecyclerAdapter.Holder holder, final int position) {
         final String data = mListData.get(position);
     final String per = percent.get(position);
     if(attend.size()>position) {
@@ -94,7 +96,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder
                     int x = (int) (((100 / p) * i) - i);
                     int y = (int) Math.ceil((100 / (100 - p) * j) - j);
                     if (x - j < 0) {
-                        holder.detail.setText("Attend atleast " + String.valueOf(y - i) + " to be safe");
+                        holder.detail.setText("Attend minimum : " + String.valueOf(y - i));
 
                     } else {
                         holder.detail.setText("Bunks available : " + String.valueOf(x - j));
@@ -105,9 +107,17 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder
                 holder.detail.setText("");
             }
 
-
-    holder.status.setText(getStatus(i,j,Integer.parseInt(per)));
-    holder.status.setTextColor(getColor(i, j, Integer.parseInt(per)));
+    String st = getStatus(i, j, Integer.parseInt(per));
+        int col = getColor(i, j, Integer.parseInt(per));
+    holder.status.setText(st);
+    if(!st.equals("Start with lectures")) {
+        holder.status.append("%");
+        holder.progressBar.setProgress((int) Float.parseFloat(st));
+    } else {
+        holder.progressBar.setProgress(0);
+    }
+    holder.status.setTextColor(col);
+        holder.progressBar.getProgressDrawable().setColorFilter(col, PorterDuff.Mode.SRC_IN);
         holder.cardView.setOnLongClickListener(new View.OnLongClickListener() {
             ArrayList<String> hour = new ArrayList<String>();
             @Override
@@ -220,11 +230,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder
 
 }
 
-
-
-    public void addPercent(String item) {
-                percent.add(item);
-    }
       public int getColor(int a, int b,int l) {
           int t = a + b;
           if (t != 0) {
@@ -245,11 +250,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder
         if (t != 0) {
             float p = (float)(a)/(float)(t) * 100;
             if(p>=l+5&&p<=100)
-                return("Safe-"+String.format("%.2f",p)+"%");
+                return(String.format("%.2f",p));
             else if(p>=l&&p<l+5)
-                return("Careful-"+String.format("%.2f",p)+"%");
+                return(String.format("%.2f",p));
             else
-                return("Defaulter-"+String.format("%.2f",p)+"%");
+                return(String.format("%.2f",p));
         } else
             return("Start with lectures");
     }
@@ -259,9 +264,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder
     public void addMissed(String item){
         miss.add(item);
     }
-    public void addItem(String item) {
-                mListData.add(item);
-        notifyItemInserted(mListData.size()-1);
+    public void addItem(ArrayList<Subjects> items) {
+        for(int i = 0; i < items.size(); i++ ) {
+            mListData.add(items.get(i).getName());
+            percent.add(String.valueOf(items.get(i).getLimit()));
+            notifyItemInserted(mListData.size()-1);
+        }
     }
     @Override
     public int getItemCount() {
@@ -275,6 +283,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder
         Button attended;
         Button missed;
         CardView cardView;
+        ProgressBar progressBar;
         public Holder(View itemView) {
             super(itemView);
                 cardView = (CardView)itemView.findViewById(R.id.cardViewMain);
@@ -283,8 +292,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Holder
                 detail=(TextView)itemView.findViewById(R.id.textView14);
                 missed = (Button) itemView.findViewById(R.id.button2);
                 status = (TextView) itemView.findViewById(R.id.textView2);
-
-
+                progressBar = (ProgressBar) itemView.findViewById(R.id.attendanceProgress);
         }
     }
     public void delete(String filename){

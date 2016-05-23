@@ -33,8 +33,7 @@ import java.io.InputStreamReader;
 import java.util.Calendar;
 
 
-public class
-        Settings extends AppCompatActivity {
+public class Settings extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
