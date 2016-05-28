@@ -8,10 +8,12 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
+import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,12 +35,14 @@ import java.io.InputStreamReader;
 import java.util.Calendar;
 
 
-public class
-        Settings extends AppCompatActivity {
+public class Settings extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(getResources().getColor(R.color.material_indigo_700));
+        }
         final AlarmManager am = (AlarmManager) getBaseContext().getSystemService(ALARM_SERVICE);
         Intent intent1 = new Intent(getBaseContext(), notify.class);
         final PendingIntent pendingIntent = PendingIntent.getBroadcast(getBaseContext(), 0,intent1, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -85,7 +89,7 @@ public class
         final TextView text =(TextView)findViewById(R.id.textView10);
         final ImageView img=(ImageView)findViewById(R.id.imageView);
         final TextView text1=(TextView)findViewById(R.id.textView11);
-        final android.support.v7.widget.SwitchCompat mswitch=(android.support.v7.widget.SwitchCompat)findViewById(R.id.switch1);
+        final SwitchCompat mswitch=(SwitchCompat)findViewById(R.id.switch1);
         Toolbar toolbar=(Toolbar)findViewById(R.id.notification_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

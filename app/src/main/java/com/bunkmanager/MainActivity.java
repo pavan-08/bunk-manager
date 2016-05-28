@@ -3,178 +3,190 @@ package com.bunkmanager;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.bunkmanager.adapters.RecyclerAdapter;
+
 import com.bunkmanager.adapters.ViewPagerAdapter;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
 
+import com.bunkmanager.entity.Subjects;
 
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG_FAB="FAB called";
-    private RecyclerView mRecycler;
     private EditText subject;
     private ViewPager mPager;
     private ViewPagerAdapter adapter;
-    private SlidingTabLayout mTabHost;
+    private TabLayout mTabHost;
     private EditText Percent;
-    private RecyclerAdapter mAdapter;
     private Toolbar mToolbar;
-    private CustomDrawerLayout mDrawerLayout;
-
-
-
+    private CustomDrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private DBHelper dbHelper;
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        View mView = getLayoutInflater().inflate(R.layout.fragment_layout,null);
-        /*AdView mAdView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);*/
-        StringBuffer stringBuffer =new StringBuffer();
-        ArrayList<String> subs =new ArrayList<>();
-        ArrayList<String> hour = new ArrayList<>();
+        ArrayList<Subjects> subs =new ArrayList<>();
+        dbHelper = new DBHelper(this);
         try {
-            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                    openFileInput("Subjects")));
-            int inputChar;
-            while ((inputChar = inputReader.read()) != -1) {
-                if ((char) inputChar == '~') {
-                    subs.add(stringBuffer.toString());
-                    stringBuffer.delete(0, stringBuffer.length());
-                } else {
-                    stringBuffer.append((char) inputChar);
-                }
-            }
-        } catch (IOException e) {
+            dbHelper.open();
+            subs = (ArrayList<Subjects>)dbHelper.getSubjects().clone();
+            dbHelper.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-
-        StringBuffer stringBuffer1=new StringBuffer();
-        for(int i=1;i<=6;i++) {
-            try {
-                BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                        openFileInput("hours"+String.valueOf(i))));
-                String input;
-                while ((input = inputReader.readLine()) != null) {
-                    hour.add(input);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
         mToolbar = (Toolbar)findViewById(R.id.view3);
-        mRecycler=(RecyclerView)mView.findViewById(R.id.view);
-        mDrawerLayout=(CustomDrawerLayout)findViewById(R.id.drawer_layout);
-        mAdapter=new RecyclerAdapter(this);
+        drawerLayout=(CustomDrawerLayout) findViewById(R.id.drawer_layout);
+        navigationView = (NavigationView) findViewById(R.id.fragment_navigation_drawer);
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        mTabHost=(SlidingTabLayout)findViewById(R.id.view4);
+        setTitle("");
+        mTabHost=(TabLayout) findViewById(R.id.view4);
         mPager=(ViewPager)findViewById(R.id.view5);
-        adapter=new ViewPagerAdapter(mToolbar,mTabHost,getSupportFragmentManager(),this);
+        adapter=new ViewPagerAdapter(mToolbar,getSupportFragmentManager(),this);
         mPager.setAdapter(adapter);
-      //  mPager.setOffscreenPageLimit(0);
-        if(subs.size()<1&&hour.size()<1){
+        setUpNavigationDrawer();
+        if(subs.size()<1){
             mPager.setCurrentItem(1);
-        } else if(subs.size()<1){
-            mPager.setCurrentItem(0);
-        } else if(hour.size()<1){
-            mPager.setCurrentItem(2);
+            navigationView.setCheckedItem(R.id.getStarted);
         } else{
-            mPager.setCurrentItem(2);
-            Date date =new Date();
-            SimpleDateFormat dateFormat =new SimpleDateFormat("E");
-
-            if(dateFormat.format(date).equals("Sun")){
-                mPager.setCurrentItem(0);
-                Toast.makeText(getBaseContext(),"Sit back and review attendance,its Sunday!",Toast.LENGTH_LONG).show();
-            }  else if(dateFormat.format(date).equals("Mon")){
-                mPager.setCurrentItem(2);
-                Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
-            } else if(dateFormat.format(date).equals("Tue")){
-                mPager.setCurrentItem(3);
-                Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
-            } else if(dateFormat.format(date).equals("Wed")){
-                mPager.setCurrentItem(4);
-                Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
-            } else if(dateFormat.format(date).equals("Thu")){
-                mPager.setCurrentItem(5);
-                Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
-            } else if(dateFormat.format(date).equals("Fri")){
-                mPager.setCurrentItem(6);
-                Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
-            } else if(dateFormat.format(date).equals("Sat")){
-                mPager.setCurrentItem(7);
-                Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
-            } else{
-                mPager.setCurrentItem(1);
-                Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
-            }
+            int page = getDayInt();
+            mPager.setCurrentItem(page);
+            navigationView.setCheckedItem(page == 0 ? R.id.subjects : R.id.timeTable);
         }
-        mTabHost.setDistributeEvenly(true);
-        mTabHost.setCustomTabColorizer(new SlidingTabLayout.TabColorizer() {
+
+        mTabHost.setupWithViewPager(mPager);
+        mTabHost.setTabTextColors(ContextCompat.getColorStateList(this, R.color.selector));
+        mTabHost.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.white));
+        mTabHost.setTabMode(TabLayout.MODE_SCROLLABLE);
+        mPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public int getIndicatorColor(int position) {
-                return getResources().getColor(R.color.white);
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
             }
-        });
-        mTabHost.setViewPager(mPager);
-        mRecycler.setOnScrollListener(new RecyclerView.OnScrollListener() {
-            boolean hide=false;
+
             @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                if(hide){
-                    mToolbar.animate().translationY(-mToolbar.getBottom()).setInterpolator(new AccelerateInterpolator()).start();
-                } else{
-                   mToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator()).start();
+            public void onPageSelected(int position) {
+                if(position == 0){
+                    navigationView.setCheckedItem(R.id.subjects);
+                } else if(position == 1) {
+                    navigationView.setCheckedItem(R.id.getStarted);
+                } else {
+                    navigationView.setCheckedItem(R.id.timeTable);
                 }
             }
 
             @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                if(dy>8){
-                    hide=true;
-                } else if(dy<-5){
-                    hide=false;
-                }
+            public void onPageScrollStateChanged(int state) {
+
             }
         });
-        NavigationDrawerFragment drawerFragment =(NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.fragment_navigation_drawer);
-        drawerFragment.setUp(mPager,R.id.fragment_navigation_drawer,(CustomDrawerLayout)findViewById(R.id.drawer_layout),mToolbar);
-
-
-
     }
 
+    private void setUpNavigationDrawer() {
+        //Setting Navigation View Item Selected Listener to handle the item click of the navigation menu
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
 
+            // This method will trigger on item Click of navigation menu
+            @Override
+            public boolean onNavigationItemSelected(MenuItem menuItem) {
+                menuItem.setChecked(true);
+                drawerLayout.closeDrawers();
 
+                switch (menuItem.getItemId()){
+                    case R.id.getStarted:
+                        mPager.setCurrentItem(1);
+                        return true;
+                    case R.id.subjects:
+                        mPager.setCurrentItem(0);
+                        return true;
+                    case R.id.timeTable:
+                        mPager.setCurrentItem(getDayInt());
+                        return true;
+                    case R.id.notificationSettings:
+                        Intent intent1 = new Intent(MainActivity.this, Settings.class);
+                        startActivity(intent1);
+                        return true;
+                    default:
+                        Toast.makeText(getApplicationContext(),"Somethings Wrong",Toast.LENGTH_SHORT).show();
+                        return true;
+                }
+            }
+        });
+
+        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(this,drawerLayout,mToolbar,R.string.drawer_open, R.string.drawer_close){
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                // Code here will be triggered once the drawer closes as we dont want anything to happen so we leave this blank
+                super.onDrawerClosed(drawerView);
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                // Code here will be triggered once the drawer open as we dont want anything to happen so we leave this blank
+
+                super.onDrawerOpened(drawerView);
+            }
+        };
+
+        //Setting the actionbarToggle to drawer layout
+        drawerLayout.setDrawerListener(actionBarDrawerToggle);
+
+        //calling sync state is necessay or else your hamburger icon wont show up
+        actionBarDrawerToggle.syncState();
+    }
+
+    private int getDayInt() {
+        Date date =new Date();
+        SimpleDateFormat dateFormat =new SimpleDateFormat("E");
+
+        if(dateFormat.format(date).equals("Sun")){
+            Toast.makeText(getBaseContext(),"Sit back and review attendance,its Sunday!",Toast.LENGTH_LONG).show();
+            return 0;
+        }  else if(dateFormat.format(date).equals("Mon")){
+            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            return 2;
+        } else if(dateFormat.format(date).equals("Tue")){
+            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            return 3;
+        } else if(dateFormat.format(date).equals("Wed")){
+            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            return 4;
+        } else if(dateFormat.format(date).equals("Thu")){
+            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            return 5;
+        } else if(dateFormat.format(date).equals("Fri")){
+            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            return 6;
+        } else if(dateFormat.format(date).equals("Sat")){
+            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            return 7;
+        } else{
+            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            return 1;
+        }
+    }
 
 
     @Override
@@ -199,60 +211,13 @@ public class MainActivity extends AppCompatActivity {
             alert.setPositiveButton("CONTINUE",new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    StringBuffer stringBuffer =new StringBuffer();
-                    ArrayList<String> subs =new ArrayList<>();
-                    ArrayList<String> hour = new ArrayList<>();
                     try {
-                        BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                                openFileInput("Subjects")));
-                        int inputChar;
-                        while ((inputChar = inputReader.read()) != -1) {
-                            if ((char) inputChar == '~') {
-                                subs.add(stringBuffer.toString());
-                                stringBuffer.delete(0, stringBuffer.length());
-                            } else {
-                                stringBuffer.append((char) inputChar);
-                            }
-                        }
-                    } catch (IOException e) {
+                        dbHelper.open();
+                        dbHelper.deleteAllData();
+                        dbHelper.close();
+                    } catch (SQLException e) {
                         e.printStackTrace();
                     }
-
-                    StringBuffer stringBuffer1=new StringBuffer();
-                    for(int i=1;i<=6;i++) {
-                        try {
-                            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                                    openFileInput("hours"+String.valueOf(i))));
-                            String input;
-                            while ((input = inputReader.readLine()) != null) {
-                                hour.add(input);
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    for(int i=0;i<subs.size();i++){
-                        save(subs.get(i),"",MODE_PRIVATE);
-                        save("a"+subs.get(i),"",MODE_PRIVATE);
-                        save("m"+subs.get(i),"",MODE_PRIVATE);
-                    }
-                    if(hour.size()<1){
-
-                    }else {
-                        for (int i = 2; i < 8; i++) {
-                            for (int j = 0; j < Integer.parseInt(hour.get(i-2)); j++) {
-                                save(String.valueOf(i)+String.valueOf(j),"",MODE_PRIVATE);
-                                save("a"+String.valueOf(i)+String.valueOf(j),"",MODE_PRIVATE);
-                                save("m"+String.valueOf(i)+String.valueOf(j),"",MODE_PRIVATE);
-                            }
-                        }
-                    }
-
-                    for(int i=1;i<=6;i++) {
-                        save("hours"+String.valueOf(i), "", MODE_PRIVATE);
-                    }
-                    save("Subjects", "", MODE_PRIVATE);
                     Intent bIntent= new Intent(getBaseContext(),MainActivity.class);
                     bIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(bIntent);
@@ -269,22 +234,11 @@ public class MainActivity extends AppCompatActivity {
         } /*else if(id==R.id.notification){
             Intent intent =new Intent(getBaseContext(),notifications.class);
             startActivity(intent);
-        }*/else{}
+        }*/
 
         return super.onOptionsItemSelected(item);
     }
-    public  void save(String file, String data, int mode){
-        FileOutputStream fos;
-        try{
-            fos=openFileOutput(file, mode);
-            fos.write(data.getBytes());
-            fos.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+
 
 
 

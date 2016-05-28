@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
-import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,16 +34,15 @@ public class InfoRecyclerAdapter extends RecyclerView.Adapter<InfoRecyclerAdapte
         for(int i=0;i<9;i++){
             numbers.add(String.valueOf(i+1)+". ");
         }
-        instructions.add("Go to Subjects section, add subjects using the Floating button");
-        instructions.add("Now, in the navigation bar, hit on time table section");
-        instructions.add("Once here, using the Floating button, set number of lectures per day, for the entire week at once");
-        instructions.add("The app will restart now and take you to the current day");
-        instructions.add("You can see a template of the lectures set, hit on 'Add Subject' to set a subject for that lecture");
+        instructions.add("Go to Subjects section, add subjects using the Floating '+' button.");
+        instructions.add("Now, in the navigation bar, hit on time table section.");
+        instructions.add("Once here, use the floating '+' button to set a lecture of a subject on that day.");
+        instructions.add("Prepare the timetable for the week in a similar fashion.");
         instructions.add("Now, you're set, record attended and bunked lectures by hitting the green and red number buttons repectively and" +
-                " do a long press on the respective buttons to reduce number by 1");
-        instructions.add("Edit subject names and percentage limit on the subjects tab by simply doing a long press on it");
-        instructions.add("Definitely the time tables and subjects change over time; long press on a lecture to see more options and at the top of the app, you have a master reset button");
-        instructions.add("Can't remember to record daily? Never mind, check out the settings section!");
+                " do a long press on the respective buttons to reduce count by 1.");
+        instructions.add("Long press in Subjects section on any subject to get more options.");
+        instructions.add("Definitely the time tables and subjects change over time; long press on a lecture to see more options and at the top of the app, you have a master reset button.");
+        instructions.add("Can't remember to record daily? Never mind, check out the notifications section!");
         Holder holder=new Holder(item);
         return holder;
     }
@@ -52,7 +50,6 @@ public class InfoRecyclerAdapter extends RecyclerView.Adapter<InfoRecyclerAdapte
     @Override
     public void onBindViewHolder(Holder holder, int position) {
         String link="<a href='http://goo.gl/forms/j0gIXsL2mX'>here</a>";
-        holder.cardView.setRadius(20);
 
         if(position==0){
             holder.number.setVisibility(View.INVISIBLE);
@@ -64,12 +61,12 @@ public class InfoRecyclerAdapter extends RecyclerView.Adapter<InfoRecyclerAdapte
             holder.instruction.setVisibility(View.VISIBLE);
             holder.welcome.setVisibility(View.INVISIBLE);
             holder.intro.setVisibility(View.INVISIBLE);
-            if(position==11){
-                String string="<br><br><i>developed by Pavan R Chhatpar</i>";
+            if(position==9){
+                String string="<br><br>developed by <i>Pavan R Chhatpar</i>";
                 holder.instruction.setText(Html.fromHtml(string));
                 holder.number.setText("  ");
 
-            } else if (position == 10) {
+            } /*else if (position == 10) {
                 holder.number.setText("10. ");
                 holder.instruction.setClickable(true);
                 holder.instruction.setMovementMethod(LinkMovementMethod.getInstance());
@@ -77,7 +74,7 @@ public class InfoRecyclerAdapter extends RecyclerView.Adapter<InfoRecyclerAdapte
                 holder.instruction.append(Html.fromHtml(link));
                 holder.instruction.append(". Dont worry, you wont be sent any spam");
 
-            } else {
+            }*/ else {
                     holder.number.setText(numbers.get(position-1));
                     holder.instruction.setText(instructions.get(position-1));
 
@@ -89,7 +86,7 @@ public class InfoRecyclerAdapter extends RecyclerView.Adapter<InfoRecyclerAdapte
 
     @Override
     public int getItemCount() {
-        return 12;
+        return 10;
     }
 
     public static class Holder extends RecyclerView.ViewHolder{

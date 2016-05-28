@@ -41,7 +41,7 @@ public class notify extends BroadcastReceiver {
         if(dateFormat.format(date).equals("Sun")){
             builder.setContentText("Its Sunday! Time to review attendance");
         } else {
-            builder.setContentText("Click to record attendance for today");
+            builder.setContentText("Tell me how your day was!");
         }
         builder.setSmallIcon(R.mipmap.ic_notification);
         Notification notification =builder.build();

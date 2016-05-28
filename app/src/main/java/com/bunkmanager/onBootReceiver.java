@@ -24,27 +24,21 @@ public class onBootReceiver extends BroadcastReceiver {
         String status=ReadLine("notify", context);
         String hour=ReadLine("hour",context);
         String minute=ReadLine("minute",context);
-        if(status.equals("")||status.equals("off")){
-
-        } else if(status.equals("on")){
-            if(hour.equals("")||minute.equals("")){
-
+        if (status.equals("on") && !hour.equals("") && !minute.equals("")) {
+            int mHour = Integer.parseInt(hour);
+            int mMinute = Integer.parseInt(minute);
+            long alarm = 0;
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.HOUR_OF_DAY, mHour);
+            calendar.set(Calendar.MINUTE, mMinute);
+            calendar.set(Calendar.SECOND, 00);
+            if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+                alarm = calendar.getTimeInMillis() + (AlarmManager.INTERVAL_DAY);
             } else {
-                int mHour=Integer.parseInt(hour);
-                int mMinute=Integer.parseInt(minute);
-                long alarm=0;
-                Calendar calendar = Calendar.getInstance();
-                calendar.set(Calendar.HOUR_OF_DAY, mHour);
-                calendar.set(Calendar.MINUTE, mMinute);
-                calendar.set(Calendar.SECOND, 00);
-                if(calendar.getTimeInMillis()<= System.currentTimeMillis()){
-                    alarm=calendar.getTimeInMillis()+(AlarmManager.INTERVAL_DAY);
-                } else{
-                    alarm=calendar.getTimeInMillis();
-                }
-                am.setRepeating(AlarmManager.RTC_WAKEUP, alarm, 24 * 60 * 60 * 1000, pendingIntent);
-
+                alarm = calendar.getTimeInMillis();
             }
+            am.setRepeating(AlarmManager.RTC_WAKEUP, alarm, 24 * 60 * 60 * 1000, pendingIntent);
+
         }
     }
     public String ReadLine(String filename,Context context)

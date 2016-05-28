@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:fab="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#eeeeee">
     <FrameLayout
+        android:id="@+id/frame1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:background="#eeeeee"
         >
         <TextView
             android:id="@+id/lec_intro"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center|top"
+            android:layout_gravity="center_horizontal|center_vertical"
             android:layout_marginTop="10dp"
-            android:drawableLeft="@drawable/ic_action_name2"
-            android:drawableStart="@drawable/ic_action_name2"
-            android:drawablePadding="2dp"
-            android:text=": click this to add number of lectures"
-            android:textSize="17sp"/>
+            android:text="Click on + to add new lecture"
+            android:textSize="18sp"/>
         <view
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -28,22 +26,15 @@
             android:id="@+id/view"
             android:layout_gravity="center_horizontal|bottom">
             </view>
-        <com.melnykov.fab.FloatingActionButton
+        <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab1"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="bottom|right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
             android:layout_marginRight="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            android:src="@drawable/ic_add_subject"
-            fab:fab_colorNormal="#FFAB00"
-            fab:fab_colorPressed="#FFC400"
+            android:layout_marginBottom="@dimen/FAB_bottom_margin"
+            android:src="@drawable/ic_action_name"
             />
     </FrameLayout>
-
-
-
-
-
 </RelativeLayout>
