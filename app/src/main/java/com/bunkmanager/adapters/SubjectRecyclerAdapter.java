@@ -1,10 +1,11 @@
 package com.bunkmanager.adapters;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -17,6 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bunkmanager.DBHelper;
 import com.bunkmanager.MainActivity;
 import com.bunkmanager.R;
 import com.bunkmanager.entity.Subjects;
@@ -27,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
@@ -34,12 +37,15 @@ import java.util.ArrayList;
  */
 public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecyclerAdapter.Holder>{
     private ArrayList<String> mListData = new ArrayList<>();
+    private ArrayList<Integer> ids = new ArrayList<>();
     private ArrayList<String> attend = new ArrayList<>();
     private ArrayList<String> miss = new ArrayList<>();
     private ArrayList<String> percent=new ArrayList<>();
     private LayoutInflater mLayoutInflater;
     public Activity activity;
     public static int num;
+    private DBHelper dbHelper;
+
     public SubjectRecyclerAdapter(Activity act){
         this.activity=act;
         mLayoutInflater=LayoutInflater.from(act);
@@ -48,6 +54,7 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
     {
         num=number;
         this.activity=act;
+        dbHelper = new DBHelper(act);
         mLayoutInflater=LayoutInflater.from(act);
     }
 
@@ -122,108 +129,118 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
             ArrayList<String> hour = new ArrayList<String>();
             @Override
             public boolean onLongClick(View v) {
-                final int hours;
-                AlertDialog.Builder add=new AlertDialog.Builder(activity);
-                final View layout =mLayoutInflater.inflate(R.layout.add_subject,null);
-                add.setView(layout);
-                final EditText sub = (EditText) layout.findViewById(R.id.editText);
-                final EditText perc = (EditText) layout.findViewById(R.id.editText2);
-                Toolbar toolbar =(Toolbar)layout.findViewById(R.id.view2);
-                toolbar.setTitle("Edit Subject");
-                sub.setText(data);
-                perc.setText(per);
-                add.setPositiveButton("SAVE", new DialogInterface.OnClickListener() {
+                AlertDialog.Builder alert = new AlertDialog.Builder(activity);
+
+                final CharSequence options[] = {"Edit", "Reset", "Delete"};
+                alert.setItems(options, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // Toast.makeText(activity,"save.",Toast.LENGTH_SHORT).show();
-                        String subject = sub.getText().toString();
-                        String Percent = perc.getText().toString();
-                        if (subject.equals("")) {
-                            Toast.makeText(activity, "Empty Subject Inputs", Toast.LENGTH_SHORT).show();
-                        } else if (percent.equals("")) {
-                            Toast.makeText(activity, "Empty Percent Inputs", Toast.LENGTH_SHORT).show();
-                        } else if (MainActivity.isNotNumeric(Percent)) {
-                            Toast.makeText(activity, percent + "is not a number", Toast.LENGTH_LONG).show();
-                        } else if (Integer.parseInt(Percent) > 100 || Integer.parseInt(Percent) < 0) {
-                            Toast.makeText(activity, "invalid percent limit", Toast.LENGTH_SHORT).show();
-                        } else {
-                            delete(mListData.get(position));
-                            String att = new String();
-                            String miss = new String();
-                            try {
-                                BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                                        activity.openFileInput("a" + mListData.get(position))));
-                                String input;
-                                while ((input = inputReader.readLine()) != null) {
-                                    att=input;
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                                        activity.openFileInput("m" + mListData.get(position))));
-                                String input;
-                                while ((input = inputReader.readLine()) != null) {
-                                    miss=input;
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            delete("a" + mListData.get(position));
-                            delete("m" + mListData.get(position));
-                            StringBuffer stringBuffer1 = new StringBuffer();
-                            for (int i = 1; i <= 6; i++) {
-                                try {
-                                    BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                                            activity.openFileInput("hours" + String.valueOf(i))));
-                                    String input;
-                                    while ((input = inputReader.readLine()) != null) {
-                                        hour.add(input);
-                                    }
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            for (int i = 2; i < 8; i++) {
-                                for (int j = 0; j < Integer.parseInt(hour.get(i - 2)); j++) {
+                        if (options[which] == "Delete") {
+                            AlertDialog.Builder ask = new AlertDialog.Builder(activity);
+                            ask.setMessage("Are you sure to delete this subject?");
+                            ask.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
                                     try {
-                                        BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                                                activity.openFileInput(String.valueOf(i) + String.valueOf(j))));
-                                        String input;
-                                        while ((input = inputReader.readLine()) != null) {
-                                            if (input.equals(mListData.get(position))) {
-                                                save(String.valueOf(i) + String.valueOf(j), subject, activity.MODE_PRIVATE);
-                                            }
-                                        }
-                                    } catch (IOException e) {
+                                        dbHelper.open();
+                                        dbHelper.deleteSubject(ids.get(position));
+                                        dbHelper.close();
+                                        ids.remove(position);
+                                        attend.remove(position);
+                                        miss.remove(position);
+                                        percent.remove(position);
+                                        mListData.remove(position);
+                                        notifyItemRemoved(position);
+                                    } catch (SQLException e) {
                                         e.printStackTrace();
                                     }
-                                    /*save(String.valueOf(i) + String.valueOf(j), "", MODE_PRIVATE);
-                                    save("a" + String.valueOf(i) + String.valueOf(j), "", MODE_PRIVATE);
-                                    save("m" + String.valueOf(i) + String.valueOf(j), "", MODE_PRIVATE);*/
+
                                 }
-                            }
-                            mListData.set(position, subject);
-                            percent.set(position, Percent);
-                            save(subject,subject+"~"+Percent+"`",activity.MODE_PRIVATE);
-                            save("Subjects","",activity.MODE_PRIVATE);
-                            for (int z = 0; z < mListData.size(); z++) {
-                                save("Subjects",mListData.get(z)+"~",activity.MODE_APPEND);
-                            }
-                            save("a"+subject,att,activity.MODE_PRIVATE);
-                            save("m"+subject,miss,activity.MODE_PRIVATE);
-                            notifyItemChanged(position);
+                            });
+                            ask.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                }
+                            });
+                            ask.show();
+                        } else if (options[which] == "Reset") {
+                            AlertDialog.Builder ask = new AlertDialog.Builder(activity);
+                            ask.setMessage("Are you sure to reset attendance of this subject?");
+                            ask.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    try {
+                                        dbHelper.open();
+                                        dbHelper.deleteAllAttendanceBySubject(ids.get(position));
+                                        dbHelper.close();
+                                        miss.set(position, "0");
+                                        attend.set(position, "0");
+                                        notifyItemChanged(position);
+                                    } catch (SQLException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                            ask.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                }
+                            });
+                            ask.show();
+                        } else if( options[which] == "Edit") {
+                            AlertDialog.Builder add=new AlertDialog.Builder(activity);
+                            final View layout =mLayoutInflater.inflate(R.layout.add_subject,null);
+                            add.setView(layout);
+                            final EditText sub = (EditText) layout.findViewById(R.id.editText);
+                            final EditText perc = (EditText) layout.findViewById(R.id.editText2);
+                            Toolbar toolbar =(Toolbar)layout.findViewById(R.id.view2);
+                            toolbar.setTitle("Edit Subject");
+                            sub.setText(data);
+                            perc.setText(per);
+                            add.setPositiveButton("SAVE", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Toast.makeText(activity,"save.",Toast.LENGTH_SHORT).show();
+                                    String subject = sub.getText().toString();
+                                    String Percent = perc.getText().toString();
+                                    if (subject.equals("")) {
+                                        Toast.makeText(activity, "Empty Subject Inputs", Toast.LENGTH_SHORT).show();
+                                    } else if (percent.equals("")) {
+                                        Toast.makeText(activity, "Empty Percent Inputs", Toast.LENGTH_SHORT).show();
+                                    } else if (MainActivity.isNotNumeric(Percent)) {
+                                        Toast.makeText(activity, percent + "is not a number", Toast.LENGTH_LONG).show();
+                                    } else if (Integer.parseInt(Percent) > 100 || Integer.parseInt(Percent) < 0) {
+                                        Toast.makeText(activity, "invalid percent limit", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        mListData.set(position, subject);
+                                        percent.set(position, Percent);
+                                        ContentValues cv = new ContentValues();
+                                        cv.put(DBHelper.FeedEntry.COLUMN_NAME_SNAME,subject);
+                                        cv.put(DBHelper.FeedEntry.COLUMN_NAME_LIMIT, Integer.parseInt(Percent));
+                                        try {
+                                            dbHelper.open();
+                                            dbHelper.updateSubject(cv, ids.get(position));
+                                            dbHelper.close();
+                                        } catch (SQLException e) {
+                                            e.printStackTrace();
+                                        }
+                                        notifyItemChanged(position);
+                                    }
+                                }
+                            });
+                            add.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Toast.makeText(activity, "Canceled", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            add.show();
                         }
                     }
                 });
-                add.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(activity, "Canceled", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                add.show();
+                alert.show();
                 return true;
             }
         });
@@ -258,6 +275,9 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
         } else
             return("Start with lectures");
     }
+    public void addId(int id) {
+        ids.add(id);
+    }
     public void addAttended(String item){
         attend.add(item);
     }
@@ -268,6 +288,7 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
         for(int i = 0; i < items.size(); i++ ) {
             mListData.add(items.get(i).getName());
             percent.add(String.valueOf(items.get(i).getLimit()));
+            addId(items.get(i).getId());
             notifyItemInserted(mListData.size()-1);
         }
     }
@@ -293,24 +314,6 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
                 missed = (Button) itemView.findViewById(R.id.button2);
                 status = (TextView) itemView.findViewById(R.id.textView2);
                 progressBar = (ProgressBar) itemView.findViewById(R.id.attendanceProgress);
-        }
-    }
-    public void delete(String filename){
-        File dir = activity.getFilesDir();
-        File file = new File(dir, filename);
-        boolean deleted=file.delete();
-    }
-
-    public  void save(String file, String data, int mode){
-        FileOutputStream fos;
-        try{
-            fos=activity.openFileOutput(file, mode);
-            fos.write(data.getBytes());
-            fos.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

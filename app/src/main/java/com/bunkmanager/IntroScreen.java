@@ -87,6 +87,9 @@ public class IntroScreen extends Activity {
             }
         }
         //Plotting table: subjects
+        if(subs.size() == 0) {
+            deleteRecord("Subjects");
+        }
         for(int i=0;i<subs.size();i++){
             try {
                 stringBuffer = new StringBuffer();

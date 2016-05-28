@@ -4,8 +4,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -17,8 +17,8 @@ import android.widget.Toast;
 import com.bunkmanager.DBHelper;
 import com.bunkmanager.R;
 import com.bunkmanager.adapters.TTRecyclerAdapter;
-import com.bunkmanager.entity.*;
-import com.melnykov.fab.FloatingActionButton;
+
+import android.support.design.widget.FloatingActionButton;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ public class DayOfWeek extends Fragment {
     private FloatingActionButton FAB;
     private TextView intro;
     private DBHelper dbHelper;
-    private ViewPager mPager;
+    private AppBarLayout appBarLayout;
 
     public DayOfWeek() {
 
@@ -67,12 +67,14 @@ public class DayOfWeek extends Fragment {
     @Override
     public void onViewCreated(final View view, @Nullable final
     Bundle savedInstanceState) {
-        mPager = (ViewPager) getActivity().findViewById(R.id.view5);
         super.onViewCreated(view, savedInstanceState);
+        /*FrameLayout frameLayout = (FrameLayout)view.findViewById(R.id.frame1);
+        frameLayout.setPadding(0, ScrollingFABBehavior.getToolbarHeight(getActivity()),0,0);*/
         final String day = getArguments().getString("position");
         intro=(TextView)view.findViewById(R.id.lec_intro);
         mRecycler = (RecyclerView) view.findViewById(R.id.view);
         FAB=(FloatingActionButton)view.findViewById(R.id.fab1);
+        appBarLayout = (AppBarLayout)getActivity().findViewById(R.id.appBarLayout);
         FAB.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -138,5 +140,30 @@ public class DayOfWeek extends Fragment {
         }
         mRecycler.setAdapter(mAdapter);
         mRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+        if(mAdapter.getItemCount()>0){
+            intro.setVisibility(View.INVISIBLE);
+        } else{
+            intro.setVisibility(View.VISIBLE);
+        }
+        mRecycler.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
+            @Override
+            public void onChildViewAttachedToWindow(View view) {
+                intro.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onChildViewDetachedFromWindow(View view) {
+                if (mAdapter.getItemCount() == 0) {
+                    intro.setVisibility(View.VISIBLE);
+                }
+
+            }
+        });
+        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                FAB.animate().translationY(-2.5f*verticalOffset);
+            }
+        });
     }
 }

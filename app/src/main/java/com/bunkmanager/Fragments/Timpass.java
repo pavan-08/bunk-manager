@@ -8,8 +8,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import com.bunkmanager.R;
-import com.bunkmanager.SimpleDividerItemDecoration;
 import com.bunkmanager.adapters.InfoRecyclerAdapter;
 
 /**
@@ -39,10 +39,11 @@ public class Timpass extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        /*RelativeLayout relativeLayout = (RelativeLayout)view.findViewById(R.id.rel1);
+        relativeLayout.setPadding(0, ScrollingFABBehavior.getToolbarHeight(getActivity()),0,0);*/
         mRecycler=(RecyclerView)view.findViewById(R.id.infoRecycler);
         mAdapter=new InfoRecyclerAdapter(getActivity());
         mRecycler.setAdapter(mAdapter);
-        mRecycler.addItemDecoration(new SimpleDividerItemDecoration(getActivity()));
         mRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
 }

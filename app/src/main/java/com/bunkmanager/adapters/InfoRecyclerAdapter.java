@@ -40,7 +40,7 @@ public class InfoRecyclerAdapter extends RecyclerView.Adapter<InfoRecyclerAdapte
         instructions.add("Prepare the timetable for the week in a similar fashion.");
         instructions.add("Now, you're set, record attended and bunked lectures by hitting the green and red number buttons repectively and" +
                 " do a long press on the respective buttons to reduce count by 1.");
-        instructions.add("Edit subject names and percentage limit on the subjects tab by simply doing a long press on it.");
+        instructions.add("Long press in Subjects section on any subject to get more options.");
         instructions.add("Definitely the time tables and subjects change over time; long press on a lecture to see more options and at the top of the app, you have a master reset button.");
         instructions.add("Can't remember to record daily? Never mind, check out the notifications section!");
         Holder holder=new Holder(item);
@@ -50,7 +50,6 @@ public class InfoRecyclerAdapter extends RecyclerView.Adapter<InfoRecyclerAdapte
     @Override
     public void onBindViewHolder(Holder holder, int position) {
         String link="<a href='http://goo.gl/forms/j0gIXsL2mX'>here</a>";
-        holder.cardView.setRadius(20);
 
         if(position==0){
             holder.number.setVisibility(View.INVISIBLE);

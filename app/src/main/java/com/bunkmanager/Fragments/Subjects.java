@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,9 +20,7 @@ import android.widget.Toast;
 import com.bunkmanager.DBHelper;
 import com.bunkmanager.MainActivity;
 import com.bunkmanager.R;
-import com.bunkmanager.SlidingTabLayout;
 import com.bunkmanager.adapters.SubjectRecyclerAdapter;
-import com.melnykov.fab.FloatingActionButton;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -30,22 +30,22 @@ import java.util.ArrayList;
  */
 public class Subjects extends Fragment {
     private static Toolbar mToolbar;
-    private static SlidingTabLayout mTabHost;
-    private static RecyclerView mRecycler;
-    private static SubjectRecyclerAdapter mAdapter;
-    private static FloatingActionButton FAB;
+    private RecyclerView mRecycler;
+    private SubjectRecyclerAdapter mAdapter;
+    private FloatingActionButton FAB;
     private TextView intro;
     private DBHelper dbHelper;
     private static View view;
+    private AppBarLayout appBarLayout;
+
     public Subjects(){
 
     }
-    public static Subjects newInstance(int position,Toolbar toolbar,SlidingTabLayout tabLayout) {
+    public static Subjects newInstance(int position,Toolbar toolbar) {
         Subjects fragment = new Subjects();
         Bundle args =new Bundle();
         args.putInt("position",position);
         mToolbar=toolbar;
-        mTabHost=tabLayout;
         fragment.setArguments(args);
         return fragment;
 
@@ -53,26 +53,28 @@ public class Subjects extends Fragment {
 
     @Override
     public void onResume() {
-
         super.onResume();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.frag_layout, container, false);
+        view = inflater.inflate(R.layout.fragment_layout, container, false);
         return view;
     }
 
     @Override
     public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+       /* FrameLayout frameLayout = (FrameLayout)view.findViewById(R.id.frame1);
+        frameLayout.setPadding(0, ScrollingFABBehavior.getToolbarHeight(getActivity()),0,0);*/
         final int num =getArguments().getInt("position");
+        appBarLayout = (AppBarLayout) getActivity().findViewById(R.id.appBarLayout);
         ArrayList<com.bunkmanager.entity.Subjects> subs= new ArrayList<>();
         dbHelper = new DBHelper(getActivity());
-        intro=(TextView)view.findViewById(R.id.add_intro_text);
+        intro=(TextView)view.findViewById(R.id.lec_intro);
         mRecycler = (RecyclerView) view.findViewById(R.id.view);
         mAdapter = new SubjectRecyclerAdapter(getActivity(),num);
-        FAB=(FloatingActionButton)view.findViewById(R.id.fab);
+        FAB=(FloatingActionButton)view.findViewById(R.id.fab1);
         FAB.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -80,6 +82,7 @@ public class Subjects extends Fragment {
                 return true;
             }
         });
+        intro.setText("Click on + to add subjects");
         if(mAdapter.getItemCount()>0){
             intro.setVisibility(View.INVISIBLE);
         } else{
@@ -123,44 +126,6 @@ public class Subjects extends Fragment {
                         } else if (Integer.parseInt(percent) > 100 || Integer.parseInt(percent) < 0) {
                             Toast.makeText(getActivity(), "invalid percent limit", Toast.LENGTH_SHORT).show();
                         } else {
-                            /*FileOutputStream fos;
-                            try {
-                                fos = getActivity().openFileOutput(subject, Context.MODE_PRIVATE);
-                                fos.write((subject + "~" + percent + "`").getBytes());
-                                fos.close();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                fos = getActivity().openFileOutput("Subjects", Context.MODE_APPEND);
-                                fos.write((subject + "~").getBytes());
-                                fos.close();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                fos = getActivity().openFileOutput("a" + subject, Context.MODE_PRIVATE);
-                                fos.write("0".getBytes());
-                                fos.close();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                fos = getActivity().openFileOutput("m" + subject, Context.MODE_PRIVATE);
-                                fos.write("0".getBytes());
-                                fos.close();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-*/
                             try {
                                 dbHelper.open();
                                 dbHelper.addSubject(subject, Integer.parseInt(percent));
@@ -169,13 +134,13 @@ public class Subjects extends Fragment {
                                 mAdapter.addItem(temp);
                                 mAdapter.addAttended("0");
                                 mAdapter.addMissed("0");
+                                dbHelper.close();
                             } catch (SQLException e) {
                                 e.printStackTrace();
                             }
 
                             mRecycler.setAdapter(mAdapter);
                             mRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
-
                         }
 
 
@@ -190,40 +155,6 @@ public class Subjects extends Fragment {
                 });
 
                 add.show();
-            }
-        });
-
-        mRecycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            boolean hide = false;
-
-            @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                if (hide) {
-
-                    FAB.animate().rotation(315);
-                    FAB.hide();
-
-
-                } else {
-
-                    FAB.animate().rotation(0);
-                    FAB.show();
-
-                }
-
-            }
-
-
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-
-                if (dy > 5) {
-                    hide = true;
-                } else if (dy < -3) {
-                    hide = false;
-                }
             }
         });
 
@@ -247,80 +178,11 @@ public class Subjects extends Fragment {
         mAdapter.addItem(subs);
         mRecycler.setAdapter(mAdapter);
         mRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
-        /*StringBuffer stringBuffer3 = new StringBuffer();
-        try {
-            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                    getActivity().openFileInput("Subjects")));
-            int inputChar;
-            while ((inputChar = inputReader.read()) != -1) {
-                if ((char) inputChar == '~') {
-
-                    subs.add(stringBuffer3.toString());
-                    stringBuffer3.delete(0, stringBuffer3.length());
-                } else {
-                    stringBuffer3.append((char) inputChar);
-                }
+        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                FAB.animate().translationY(-2.5f*verticalOffset);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
-        /*for(int i=0;i<subs.size();i++) {
-            StringBuffer stringBuffer = new StringBuffer();
-            try {
-                BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                        getActivity().openFileInput(subs.get(i))));
-                int inputChar;
-                while ((inputChar = inputReader.read()) != -1) {
-                    if ((char) inputChar == '~') {
-
-                        stringBuffer.delete(0, stringBuffer.length());
-                    } else if ((char) inputChar == '`') {
-                        mAdapter.addPercent(stringBuffer.toString());
-                        stringBuffer.delete(0, stringBuffer.length());
-                    } else {
-                        stringBuffer.append((char) inputChar);
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            StringBuffer stringBuffer1 = new StringBuffer();
-
-            try {
-                BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                        getActivity().openFileInput("a"+subs.get(i))));
-                String inputChar;
-                while ((inputChar = inputReader.readLine()) != null) {
-
-
-                    mAdapter.addAttended(inputChar);
-
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-
-
-            StringBuffer stringBuffer2 = new StringBuffer();
-
-            try {
-                BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                        getActivity().openFileInput("m"+subs.get(i))));
-                String inputChar;
-                while ((inputChar = inputReader.readLine()) != null) {
-                    mAdapter.addMissed(inputChar);
-
-
-
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            mAdapter.addItem(subs.get(i));
-        }*/
+        });
     }
 }

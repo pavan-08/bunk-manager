@@ -22,7 +22,8 @@
         android:layout_below="@id/intro_logo"
         android:gravity="center"
         android:text="Optimizing old data..."
-        android:textSize="20sp"
+        android:textSize="18sp"
+        android:textStyle="italic"
         android:layout_marginTop="5dp"/>
     <ImageView
         android:id="@+id/title_notes"

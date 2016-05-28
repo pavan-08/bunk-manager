@@ -1,21 +1,39 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#fff"
-    tools:context="com.bunkmanager.notifications"
+    tools:context="com.bunkmanager.Settings"
     >
 
-
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <view
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/material_indigo"
+            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:title="Reminder Notification"
+            app:titleTextAppearance="@style/Toolbar"
+            class="android.support.v7.widget.Toolbar"
+            android:elevation="5dp"
+            android:id="@+id/notification_toolbar"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+    </android.support.design.widget.AppBarLayout>
     <RelativeLayout
         android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
         android:layout_height="?attr/actionBarSize"
         android:id="@+id/relativeLayout2"
         android:background="#5C6BC0"
-        android:layout_below="@+id/notification_toolbar"
-        android:layout_alignLeft="@+id/notification_toolbar"
-        android:layout_alignStart="@+id/notification_toolbar">
+        >
 
         <android.support.v7.widget.SwitchCompat
             android:layout_width="wrap_content"
@@ -41,19 +59,7 @@
 
     </RelativeLayout>
 
-    <view
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/material_indigo"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:title="Reminder Notification"
-        app:titleTextAppearance="@style/Toolbar"
-        class="android.support.v7.widget.Toolbar"
-        android:elevation="5dp"
-        android:id="@+id/notification_toolbar"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+
     <ScrollView
         android:layout_below="@id/relativeLayout2"
         android:layout_width="match_parent"
@@ -92,6 +98,6 @@
         android:layout_centerHorizontal="true"/>
         </RelativeLayout>
     </ScrollView>
-
-</RelativeLayout>
+    </RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>
 

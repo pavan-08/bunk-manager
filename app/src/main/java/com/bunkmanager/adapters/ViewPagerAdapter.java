@@ -12,8 +12,6 @@ import com.bunkmanager.Fragments.Subjects;
 
 import com.bunkmanager.Fragments.Timpass;
 
-import com.bunkmanager.SlidingTabLayout;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,17 +20,15 @@ import java.util.Map;
  */
 public class ViewPagerAdapter extends FragmentStatePagerAdapter {
     private Toolbar mToolbar;
-    private SlidingTabLayout mTabHost;
     private Map<Integer, String> mFragmentTags;
     private ViewPager mPager;
     private Context mContext;
     FragmentManager fragmentManager;
     String[] tabs={"Subjects","Get Started","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
 
-    public ViewPagerAdapter(Toolbar toolbar,SlidingTabLayout tabLayout,FragmentManager fm, Context context) {
+    public ViewPagerAdapter(Toolbar toolbar, FragmentManager fm, Context context) {
         super(fm);
         mToolbar=toolbar;
-        mTabHost=tabLayout;
         fragmentManager = fm;
         mFragmentTags=new HashMap<Integer,String>();
         mContext=context;
@@ -44,7 +40,7 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
             return fragment;
         }
         else if(num == 0){
-            Subjects fragment = Subjects.newInstance(num,mToolbar,mTabHost);
+            Subjects fragment = Subjects.newInstance(num,mToolbar);
             return fragment;
         } else {
             DayOfWeek fragment = DayOfWeek.newInstance(tabs[num]);

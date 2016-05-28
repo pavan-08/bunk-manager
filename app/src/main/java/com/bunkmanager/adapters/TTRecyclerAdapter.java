@@ -1,12 +1,17 @@
 package com.bunkmanager.adapters;
 
 import android.app.Activity;
+import android.content.DialogInterface;
+import android.media.Image;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bunkmanager.DBHelper;
@@ -52,7 +57,11 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
         holder.sub_name.setText(timeTables.get(position).getSubject().getName());
         holder.attended.setText(attended.get(position).toString());
         holder.missed.setText(missed.get(position).toString());
-        holder.number.setText(String.format("%6d",position+1)+". ");
+        if(position == getItemCount() - 1) {
+            holder.rectangle.setVisibility(View.INVISIBLE);
+        } else {
+            holder.rectangle.setVisibility(View.VISIBLE);
+        }
         holder.attended.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -123,6 +132,68 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
                 return true;
             }
         });
+        holder.cardView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                AlertDialog.Builder alert = new AlertDialog.Builder(activity);
+
+                final CharSequence options[] = {"Delete", "Reset"};
+                alert.setItems(options, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (options[which] == "Delete") {
+                            AlertDialog.Builder ask = new AlertDialog.Builder(activity);
+                            ask.setMessage("Do you want to delete attendance recorded in this lecture for the subject as well?");
+                            ask.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    try {
+                                        dbHelper.open();
+                                        dbHelper.deleteAllAttendance(timeTables.get(position).getId());
+                                        dbHelper.deleteLecture(timeTables.get(position).getId());
+                                        dbHelper.close();
+                                    } catch (SQLException e) {
+                                        e.printStackTrace();
+                                    }
+                                    removeLecture(position);
+                                    notifyItemRemoved(position);
+                                }
+                            });
+                            ask.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    try {
+                                        dbHelper.open();
+                                        dbHelper.deleteLecture(timeTables.get(position).getId());
+                                        dbHelper.close();
+                                    } catch (SQLException e) {
+                                        e.printStackTrace();
+                                    }
+                                    removeLecture(position);
+                                    notifyItemRemoved(position);
+                                }
+                            });
+                            ask.show();
+
+                        } else if (options[which] == "Reset") {
+                            try {
+                                dbHelper.open();
+                                dbHelper.deleteAllAttendance(timeTables.get(position).getId());
+                                dbHelper.close();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                            attended.set(position, 0);
+                            missed.set(position, 0);
+                            notifyItemChanged(position);
+                        }
+                    }
+                });
+                alert.show();
+
+                return true;
+            }
+        });
     }
 
     @Override
@@ -150,25 +221,33 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
         notifyDataSetChanged();
     }
 
+    public void removeLecture(int position) {
+        timeTables.remove(position);
+        attended.remove(position);
+        missed.remove(position);
+    }
+
     public int getLecture(int position) {
         return timeTables.get(position).getId();
     }
 
     public class Holder extends RecyclerView.ViewHolder {
-        CardView cardView;
-        TextView number;
+        RelativeLayout cardView;
         TextView sub_name;
         TextView status;
         Button attended;
         Button missed;
+        ImageView circle;
+        ImageView rectangle;
         public Holder(View itemView) {
             super(itemView);
-            cardView=(CardView)itemView.findViewById(R.id.subjectCard);
-            number = (TextView) itemView.findViewById(R.id.textView4);
+            cardView=(RelativeLayout) itemView.findViewById(R.id.subjectCard);
             sub_name = (TextView) itemView.findViewById(R.id.textView);
             attended = (Button) itemView.findViewById(R.id.button);
             missed = (Button) itemView.findViewById(R.id.button2);
             status = (TextView)itemView.findViewById(R.id.textView6);
+            circle = (ImageView) itemView.findViewById(R.id.centerCircle);
+            rectangle = (ImageView) itemView.findViewById(R.id.lowerRectangle);
         }
     }
 }

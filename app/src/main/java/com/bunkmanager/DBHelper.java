@@ -154,6 +154,8 @@ public class DBHelper {
     }
 
     public int deleteSubject(int id) {
+        deleteAllAttendanceBySubject(id);
+        deleteLectureBySubject(id);
         return sqLiteDatabase.delete(FeedEntry.TABLE_NAME_SUBJECTS, FeedEntry._ID + "=" + id, null);
     }
 
@@ -239,6 +241,12 @@ public class DBHelper {
         return sqLiteDatabase.delete(FeedEntry.TABLE_NAME_TIMETABLE, FeedEntry._ID + "=" + id, null);
     }
 
+    public int deleteLectureBySubject(int subject) {
+        return sqLiteDatabase.delete(FeedEntry.TABLE_NAME_TIMETABLE, FeedEntry.COLUMN_NAME_SUBJECT + "=" + subject, null);
+    }
+
+
+
     public long addAttendance(int lecture, int status, int subject) {
         ContentValues cv = new ContentValues();
         cv.put(FeedEntry.COLUMN_NAME_LECTURE,lecture);
@@ -269,6 +277,18 @@ public class DBHelper {
             String delSql = "DELETE FROM " + FeedEntry.TABLE_NAME_ATTENDANCE + " WHERE " + FeedEntry._ID + "=" + id;
             sqLiteDatabase.execSQL(delSql);
         }
+    }
+
+    public void deleteAllAttendance(int lecture) {
+        String sql = "DELETE FROM " + FeedEntry.TABLE_NAME_ATTENDANCE
+                + " WHERE " + FeedEntry.COLUMN_NAME_LECTURE + "=" + lecture;
+        sqLiteDatabase.execSQL(sql);
+    }
+
+    public void deleteAllAttendanceBySubject(int subject) {
+        String sql = "DELETE FROM " + FeedEntry.TABLE_NAME_ATTENDANCE
+                + " WHERE " + FeedEntry.COLUMN_NAME_SUBJECT + "=" + subject;
+        sqLiteDatabase.execSQL(sql);
     }
 
     public String getSubjectAttendance(int subjectId, int status) {
