@@ -3,8 +3,10 @@ package com.bunkmanager.adapters;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -18,17 +20,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bunkmanager.DBHelper;
-import com.bunkmanager.MainActivity;
+import com.bunkmanager.activities.SubjectLog;
+import com.bunkmanager.helpers.DBHelper;
+import com.bunkmanager.activities.MainActivity;
 import com.bunkmanager.R;
 import com.bunkmanager.entity.Subjects;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -45,15 +42,17 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
     public Activity activity;
     public static int num;
     private DBHelper dbHelper;
+    private FragmentManager fragmentManager;
 
     public SubjectRecyclerAdapter(Activity act){
         this.activity=act;
         mLayoutInflater=LayoutInflater.from(act);
     }
-    public SubjectRecyclerAdapter(Activity act, int number)
+    public SubjectRecyclerAdapter(Activity act, int number, FragmentManager fragmentManager)
     {
         num=number;
         this.activity=act;
+        this.fragmentManager = fragmentManager;
         dbHelper = new DBHelper(act);
         mLayoutInflater=LayoutInflater.from(act);
     }
@@ -69,61 +68,61 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
     @Override
     public void onBindViewHolder(final SubjectRecyclerAdapter.Holder holder, final int position) {
         final String data = mListData.get(position);
-    final String per = percent.get(position);
-    if(attend.size()>position) {
-        String mAttend = attend.get(position);
-        holder.attended.setText(mAttend);
-    }
-    else
-    {
-        attend.add(position,"0");
-    }
-    if(miss.size()>position){
-        String mMiss = miss.get(position);
-        holder.missed.setText(mMiss);
-    }
-    else
-    {
-        miss.add(position,"0");
-    }
+        final String per = percent.get(position);
+        if(attend.size()>position) {
+            String mAttend = attend.get(position);
+            holder.attended.setText(mAttend);
+        }
+        else
+        {
+            attend.add(position,"0");
+        }
+        if(miss.size()>position){
+            String mMiss = miss.get(position);
+            holder.missed.setText(mMiss);
+        }
+        else
+        {
+            miss.add(position,"0");
+        }
 
-    final int i = Integer.parseInt(holder.attended.getText().toString());
-    final int j = Integer.parseInt(holder.missed.getText().toString());
-    holder.sub_name.setText(data);
-            int t =i+j;
-            float p =Float.parseFloat(per);
-            if(t!=0){
-                if(p>99) {
-                  if(j>0){
-                      holder.detail.setText("Defaulter forever!!");
-                  } else{
-                      holder.detail.setText("Dare not bunk a single time!");
-                  }
-                } else {
-                    int x = (int) (((100 / p) * i) - i);
-                    int y = (int) Math.ceil((100 / (100 - p) * j) - j);
-                    if (x - j < 0) {
-                        holder.detail.setText("Attend minimum : " + String.valueOf(y - i));
-
-                    } else {
-                        holder.detail.setText("Bunks available : " + String.valueOf(x - j));
-                    }
+        final int i = Integer.parseInt(holder.attended.getText().toString());
+        final int j = Integer.parseInt(holder.missed.getText().toString());
+        holder.sub_name.setText(data);
+        int t =i+j;
+        float p =Float.parseFloat(per);
+        if(t!=0){
+            if(p>99) {
+                if(j>0){
+                    holder.detail.setText("Defaulter forever!!");
+                } else{
+                    holder.detail.setText("Dare not bunk a single time!");
                 }
+            } else {
+                int x = (int) (((100 / p) * i) - i);
+                int y = (int) Math.ceil((100 / (100 - p) * j) - j);
+                if (x - j < 0) {
+                    holder.detail.setText("Attend minimum : " + String.valueOf(y - i));
 
-            } else{
-                holder.detail.setText("");
+                } else {
+                    holder.detail.setText("Bunks available : " + String.valueOf(x - j));
+                }
             }
 
-    String st = getStatus(i, j, Integer.parseInt(per));
+        } else{
+            holder.detail.setText("");
+        }
+
+        String st = getStatus(i, j, Integer.parseInt(per));
         int col = getColor(i, j, Integer.parseInt(per));
-    holder.status.setText(st);
-    if(!st.equals("Start with lectures")) {
-        holder.status.append("%");
-        holder.progressBar.setProgress((int) Float.parseFloat(st));
-    } else {
-        holder.progressBar.setProgress(0);
-    }
-    holder.status.setTextColor(col);
+        holder.status.setText(st);
+        if(!st.equals("Start with lectures")) {
+            holder.status.append("%");
+            holder.progressBar.setProgress((int) Float.parseFloat(st));
+        } else {
+            holder.progressBar.setProgress(0);
+        }
+        holder.status.setTextColor(col);
         holder.progressBar.getProgressDrawable().setColorFilter(col, PorterDuff.Mode.SRC_IN);
         holder.cardView.setOnLongClickListener(new View.OnLongClickListener() {
             ArrayList<String> hour = new ArrayList<String>();
@@ -244,25 +243,33 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
                 return true;
             }
         });
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent subjectLogIntent = new Intent(activity, SubjectLog.class);
+                subjectLogIntent.putExtra("subjectID", ids.get(position));
+                subjectLogIntent.putExtra("subjectName", mListData.get(position));
+                activity.startActivity(subjectLogIntent);
+            }
+        });
+    }
 
-}
+    public static int getColor(int a, int b,int l) {
+        int t = a + b;
+        if (t != 0) {
+            float p = (float)(a)/(float)(t) * 100;
+            if(p>=l+5&&p<=100)
+                return (Color.parseColor("#00C853"));
+            else if(p>=l&&p<l+5)
+                return(Color.parseColor("#FF6D00")) ;
+            else
+                return(Color.parseColor("#D50000")) ;
+        } else
+            return(Color.parseColor("#607D8B")) ;
 
-      public int getColor(int a, int b,int l) {
-          int t = a + b;
-          if (t != 0) {
-              float p = (float)(a)/(float)(t) * 100;
-              if(p>=l+5&&p<=100)
-                  return (Color.parseColor("#00C853"));
-              else if(p>=l&&p<l+5)
-                  return(Color.parseColor("#FF6D00")) ;
-              else
-                  return(Color.parseColor("#D50000")) ;
-          } else
-              return(Color.parseColor("#607D8B")) ;
+    }
 
-      }
-
-       public String getStatus(int a, int b,int l){
+    public static String getStatus(int a, int b,int l){
         int t = a + b;
         if (t != 0) {
             float p = (float)(a)/(float)(t) * 100;

@@ -1,4 +1,4 @@
-package com.bunkmanager;
+package com.bunkmanager.activities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import com.bunkmanager.helpers.DBHelper;
+import com.bunkmanager.R;
 import com.bunkmanager.entity.Subjects;
 
 import java.io.BufferedReader;

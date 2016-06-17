@@ -1,17 +1,17 @@
-package com.bunkmanager;
+package com.bunkmanager.helpers;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.IBinder;
-import android.os.Vibrator;
 import android.support.v7.app.NotificationCompat;
+
+import com.bunkmanager.R;
+import com.bunkmanager.activities.MainActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#fff"
-    tools:context="com.bunkmanager.Settings"
+    tools:context=".activities.Settings"
     >
 
     <android.support.design.widget.AppBarLayout
@@ -19,6 +19,7 @@
             app:titleTextAppearance="@style/Toolbar"
             class="android.support.v7.widget.Toolbar"
             android:elevation="5dp"
+            android:layout_marginTop="@dimen/toolbar_padding"
             android:id="@+id/notification_toolbar"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
@@ -26,6 +27,7 @@
     </android.support.design.widget.AppBarLayout>
     <RelativeLayout
         android:layout_width="match_parent"
+        android:paddingTop="@dimen/toolbar_padding"
         android:layout_height="match_parent">
     <RelativeLayout
         android:layout_width="match_parent"

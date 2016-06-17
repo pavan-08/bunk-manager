@@ -2,9 +2,7 @@ package com.bunkmanager.adapters;
 
 import android.app.Activity;
 import android.content.DialogInterface;
-import android.media.Image;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.bunkmanager.DBHelper;
+import com.bunkmanager.helpers.DBHelper;
 import com.bunkmanager.R;
 import com.bunkmanager.entity.TimeTable;
 

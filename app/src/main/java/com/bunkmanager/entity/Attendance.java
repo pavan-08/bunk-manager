@@ -5,6 +5,10 @@ package com.bunkmanager.entity;
  */
 public class Attendance {
     int id;
+    int status;
+    String timestamp;
+    TimeTable lecture;
+    Subjects subject;
 
     public String getTimestamp() {
         return timestamp;
@@ -14,8 +18,6 @@ public class Attendance {
         this.timestamp = timestamp;
     }
 
-    String timestamp;
-
     public int getStatus() {
         return status;
     }
@@ -24,7 +26,6 @@ public class Attendance {
         this.status = status;
     }
 
-    int status;
     public TimeTable getLecture() {
         return lecture;
     }
@@ -32,7 +33,6 @@ public class Attendance {
     public void setLecture(TimeTable lecture) {
         this.lecture = lecture;
     }
-
 
     public int getId() {
         return id;
@@ -42,5 +42,12 @@ public class Attendance {
         this.id = id;
     }
 
-    TimeTable lecture;
+    public Subjects getSubject() {
+        return subject;
+    }
+
+    public void setSubject(Subjects subject) {
+        this.subject = subject;
+    }
+
 }

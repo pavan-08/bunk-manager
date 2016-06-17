@@ -1,4 +1,4 @@
-package com.bunkmanager;
+package com.bunkmanager.helpers;
 
 import android.content.Context;
 import android.support.v4.widget.DrawerLayout;

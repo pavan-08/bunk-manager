@@ -1,14 +1,17 @@
-package com.bunkmanager;
+package com.bunkmanager.activities;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.design.widget.AppBarLayout;
+import android.content.res.Configuration;
+import android.net.Uri;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,8 +19,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.bunkmanager.helpers.CustomDrawerLayout;
+import com.bunkmanager.helpers.DBHelper;
+import com.bunkmanager.R;
 import com.bunkmanager.adapters.ViewPagerAdapter;
 
 import java.sql.SQLException;
@@ -39,11 +46,17 @@ public class MainActivity extends AppCompatActivity {
     private CustomDrawerLayout drawerLayout;
     private NavigationView navigationView;
     private DBHelper dbHelper;
+    private RelativeLayout relativeLayout;
+    private ActionBarDrawerToggle actionBarDrawerToggle;
+    private boolean isDrawerLocked = false;
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /*if(isTablet()) {
+            setTheme(R.style.AppTheme_tablet);
+        }*/
         setContentView(R.layout.activity_main);
         ArrayList<Subjects> subs =new ArrayList<>();
         dbHelper = new DBHelper(this);
@@ -58,14 +71,13 @@ public class MainActivity extends AppCompatActivity {
         mToolbar = (Toolbar)findViewById(R.id.view3);
         drawerLayout=(CustomDrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.fragment_navigation_drawer);
+        relativeLayout = (RelativeLayout) findViewById(R.id.findLayout);
         setSupportActionBar(mToolbar);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
         setTitle("");
         mTabHost=(TabLayout) findViewById(R.id.view4);
         mPager=(ViewPager)findViewById(R.id.view5);
         adapter=new ViewPagerAdapter(mToolbar,getSupportFragmentManager(),this);
         mPager.setAdapter(adapter);
-        setUpNavigationDrawer();
         if(subs.size()<1){
             mPager.setCurrentItem(1);
             navigationView.setCheckedItem(R.id.getStarted);
@@ -74,7 +86,16 @@ public class MainActivity extends AppCompatActivity {
             mPager.setCurrentItem(page);
             navigationView.setCheckedItem(page == 0 ? R.id.subjects : R.id.timeTable);
         }
-
+        if (relativeLayout.getPaddingLeft() > 0) {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN, navigationView);
+            drawerLayout.setScrimColor(getResources().getColor(R.color.noShadow));
+            isDrawerLocked = true;
+        } else {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, navigationView);
+            isDrawerLocked = false;
+        }
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        setUpNavigationDrawer();
         mTabHost.setupWithViewPager(mPager);
         mTabHost.setTabTextColors(ContextCompat.getColorStateList(this, R.color.selector));
         mTabHost.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.white));
@@ -111,8 +132,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
                 menuItem.setChecked(true);
-                drawerLayout.closeDrawers();
-
+                if(!isDrawerLocked) {
+                    drawerLayout.closeDrawers();
+                }
                 switch (menuItem.getItemId()){
                     case R.id.getStarted:
                         mPager.setCurrentItem(1);
@@ -127,6 +149,27 @@ public class MainActivity extends AppCompatActivity {
                         Intent intent1 = new Intent(MainActivity.this, Settings.class);
                         startActivity(intent1);
                         return true;
+                    case R.id.helpAFriend:
+                        Intent helpAFriend = new Intent(MainActivity.this, HelpAFriend.class);
+                        startActivity(helpAFriend);
+                        return true;
+                    case R.id.rateMe:
+                        Uri uri = Uri.parse("market://details?id=" + getPackageName());
+                        Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+                        // To count with Play market backstack, After pressing back button,
+                        // to taken back to our application, we need to add following flags to intent.
+                        goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                                Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
+                                Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                        try {
+                            startActivity(goToMarket);
+                            return true;
+                        } catch (ActivityNotFoundException e) {
+                            startActivity(new Intent(Intent.ACTION_VIEW,
+                                    Uri.parse("http://play.google.com/store/apps/details?id=" + getPackageName())));
+                            return true;
+                        }
+
                     default:
                         Toast.makeText(getApplicationContext(),"Somethings Wrong",Toast.LENGTH_SHORT).show();
                         return true;
@@ -134,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(this,drawerLayout,mToolbar,R.string.drawer_open, R.string.drawer_close){
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this,drawerLayout,mToolbar,R.string.drawer_open, R.string.drawer_close){
 
             @Override
             public void onDrawerClosed(View drawerView) {
@@ -151,10 +194,12 @@ public class MainActivity extends AppCompatActivity {
         };
 
         //Setting the actionbarToggle to drawer layout
-        drawerLayout.setDrawerListener(actionBarDrawerToggle);
+        if(!isDrawerLocked) {
+            drawerLayout.setDrawerListener(actionBarDrawerToggle);
+            //calling sync state is necessay or else your hamburger icon wont show up
+            actionBarDrawerToggle.syncState();
+        }
 
-        //calling sync state is necessay or else your hamburger icon wont show up
-        actionBarDrawerToggle.syncState();
     }
 
     private int getDayInt() {
@@ -187,7 +232,6 @@ public class MainActivity extends AppCompatActivity {
             return 1;
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -255,7 +299,22 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    /*public boolean isTablet() {
+        try {
+            // Compute screen size
+            DisplayMetrics dm = getResources().getDisplayMetrics();
+            float screenWidth  = dm.widthPixels / dm.xdpi;
+            float screenHeight = dm.heightPixels / dm.ydpi;
+            double size = Math.sqrt(Math.pow(screenWidth, 2) +
+                    Math.pow(screenHeight, 2));
+            // Tablet devices should have a screen size greater than 6 inches
+            return size >= 7;
+        } catch(Throwable t) {
+            return false;
+        }
 
+    }
+*/
 
 
 }

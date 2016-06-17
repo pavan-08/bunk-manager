@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bunkmanager.DBHelper;
+import com.bunkmanager.helpers.DBHelper;
 import com.bunkmanager.R;
 import com.bunkmanager.adapters.TTRecyclerAdapter;
 

@@ -1,4 +1,4 @@
-package com.bunkmanager;
+package com.bunkmanager.helpers;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
+import com.bunkmanager.entity.Attendance;
 import com.bunkmanager.entity.Subjects;
 import com.bunkmanager.entity.TimeTable;
 
@@ -17,7 +18,6 @@ import java.util.ArrayList;
  * Created by Pavan on 2/24/2016.
  */
 public class DBHelper {
-
 
     public static abstract class FeedEntry implements BaseColumns {
         public static final String TABLE_NAME_ATTENDANCE = "attendance";
@@ -138,6 +138,22 @@ public class DBHelper {
         Cursor mCursor = sqLiteDatabase.query(FeedEntry.TABLE_NAME_SUBJECTS,new String[]
                         {FeedEntry._ID, FeedEntry.COLUMN_NAME_SNAME, FeedEntry.COLUMN_NAME_LIMIT},
                 FeedEntry.COLUMN_NAME_SNAME + "=" + "\"" + name + "\"",null,null,null,null);
+        if(mCursor != null && mCursor.getCount() != 0) {
+            mCursor.moveToFirst();
+            do {
+                sub.setId(mCursor.getInt(0));
+                sub.setName(mCursor.getString(1));
+                sub.setLimit(mCursor.getInt(2));
+            } while (mCursor.moveToNext());
+        }
+        return sub;
+    }
+
+    public Subjects getSubjectByID(int id) {
+        Subjects sub = new Subjects();
+        Cursor mCursor = sqLiteDatabase.query(FeedEntry.TABLE_NAME_SUBJECTS,new String[]
+                        {FeedEntry._ID, FeedEntry.COLUMN_NAME_SNAME, FeedEntry.COLUMN_NAME_LIMIT},
+                FeedEntry._ID + "=" + id,null,null,null,null);
         if(mCursor != null && mCursor.getCount() != 0) {
             mCursor.moveToFirst();
             do {
@@ -302,6 +318,30 @@ public class DBHelper {
             mCursor.moveToFirst();
         //System.out.println("status: " + status + " count: " +mCursor.getInt(0));
         return String.valueOf(mCursor.getInt(0));
+    }
+
+    public ArrayList<Attendance> getSubjectAttendanceList(int subjectID, int status) {
+        ArrayList<Attendance> attendanceList = new ArrayList<Attendance>();
+        String sql = "SELECT "+FeedEntry._ID + ", " +FeedEntry.COLUMN_NAME_LECTURE + ", date(datetime("
+                + FeedEntry.COLUMN_NAME_TIMESTAMP + ", 'localtime')), "
+                + FeedEntry.COLUMN_NAME_STATUS + ", " + FeedEntry.COLUMN_NAME_SUBJECT
+                + " FROM " + FeedEntry.TABLE_NAME_ATTENDANCE
+                + " WHERE " + FeedEntry.COLUMN_NAME_SUBJECT + "= " + subjectID + " AND "
+                + FeedEntry.COLUMN_NAME_STATUS + "= " + status;
+        Cursor mCursor = sqLiteDatabase.rawQuery(sql,null);
+        if(mCursor != null && mCursor.getCount() != 0) {
+            mCursor.moveToFirst();
+            do {
+                Attendance attendance = new Attendance();
+                attendance.setId(mCursor.getInt(0));
+                attendance.setLecture(getLecture(mCursor.getInt(1)));
+                attendance.setTimestamp(mCursor.getString(2));
+                attendance.setStatus(mCursor.getInt(3));
+                attendance.setSubject(getSubjectByID(mCursor.getInt(4)));
+                attendanceList.add(attendance);
+            } while (mCursor.moveToNext());
+        }
+        return attendanceList;
     }
 
 

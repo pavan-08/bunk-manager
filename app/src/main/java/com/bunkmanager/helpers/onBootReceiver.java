@@ -1,11 +1,12 @@
-package com.bunkmanager;
+package com.bunkmanager.helpers;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.widget.Toast;
+
+import com.bunkmanager.helpers.notify;
 
 import java.io.BufferedReader;
 import java.io.IOException;

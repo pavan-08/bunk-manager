@@ -19,8 +19,18 @@
             android:title="Time Table" />
 
         <item
+            android:id="@+id/helpAFriend"
+            android:checked="false"
+            android:title="Help a friend" />
+
+        <item
             android:id="@+id/notificationSettings"
             android:checked="false"
             android:title="Notification Settings" />
+
+        <item
+            android:id="@+id/rateMe"
+            android:checked="false"
+            android:title="Rate me" />
     </group>
 </menu>

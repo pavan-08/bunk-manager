@@ -17,8 +17,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bunkmanager.DBHelper;
-import com.bunkmanager.MainActivity;
+import com.bunkmanager.helpers.DBHelper;
+import com.bunkmanager.activities.MainActivity;
 import com.bunkmanager.R;
 import com.bunkmanager.adapters.SubjectRecyclerAdapter;
 
@@ -52,11 +52,6 @@ public class Subjects extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_layout, container, false);
         return view;
@@ -73,7 +68,7 @@ public class Subjects extends Fragment {
         dbHelper = new DBHelper(getActivity());
         intro=(TextView)view.findViewById(R.id.lec_intro);
         mRecycler = (RecyclerView) view.findViewById(R.id.view);
-        mAdapter = new SubjectRecyclerAdapter(getActivity(),num);
+        mAdapter = new SubjectRecyclerAdapter(getActivity(),num, getActivity().getSupportFragmentManager());
         FAB=(FloatingActionButton)view.findViewById(R.id.fab1);
         FAB.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
