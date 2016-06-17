@@ -145,6 +145,10 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.timeTable:
                         mPager.setCurrentItem(getDayInt());
                         return true;
+                    case R.id.bunkPlanner:
+                        Intent planner = new Intent(MainActivity.this, BunkPlanner.class);
+                        startActivity(planner);
+                        return true;
                     case R.id.notificationSettings:
                         Intent intent1 = new Intent(MainActivity.this, Settings.class);
                         startActivity(intent1);

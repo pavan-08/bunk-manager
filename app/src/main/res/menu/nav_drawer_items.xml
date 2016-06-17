@@ -19,6 +19,11 @@
             android:title="Time Table" />
 
         <item
+            android:id="@+id/bunkPlanner"
+            android:checked="false"
+            android:title="Bunk Planner" />
+
+        <item
             android:id="@+id/helpAFriend"
             android:checked="false"
             android:title="Help a friend" />

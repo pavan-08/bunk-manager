@@ -23,6 +23,8 @@ public class DBHelper {
         public static final String TABLE_NAME_ATTENDANCE = "attendance";
         public static final String TABLE_NAME_SUBJECTS = "subjects";
         public static final String TABLE_NAME_TIMETABLE = "time_table";
+        public static final String TABLE_NAME_BUNK_PLANNER = "bunk_planner";
+        public static final String TABLE_NAME_PLANNER_SUBJECTS = "planner_subjects";
         public static final String COLUMN_NAME_SNAME = "name";
         public static final String COLUMN_NAME_LIMIT = "percent";
         public static final String COLUMN_NAME_LECTURE = "lecture";
@@ -30,9 +32,11 @@ public class DBHelper {
         public static final String COLUMN_NAME_TIMESTAMP = "timestamp";
         public static final String COLUMN_NAME_DAY = "day";
         public static final String COLUMN_NAME_STATUS = "status";
+        public static final String COLUMN_NAME_BP_ID = "bp_id";
+        public static final String COLUMN_NAME_DATE = "date";
     }
 
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASENAME = "bm.db";
     public static final String SQL_CREATE_TABLE_ATTENDANCE = "CREATE TABLE " + FeedEntry.TABLE_NAME_ATTENDANCE + " ("
             + FeedEntry._ID + " INTEGER PRIMARY KEY, "
@@ -54,9 +58,23 @@ public class DBHelper {
             + FeedEntry.COLUMN_NAME_SUBJECT + " INTEGER, "
             + "FOREIGN KEY (" + FeedEntry.COLUMN_NAME_SUBJECT + ") REFERENCES " + FeedEntry.TABLE_NAME_SUBJECTS + "(" + FeedEntry._ID + "))";
 
+    public static final String SQL_CREATE_TABLE_BUNK_PLANNER = "CREATE TABLE " + FeedEntry.TABLE_NAME_BUNK_PLANNER + " ("
+            + FeedEntry._ID + " INTEGER PRIMARY KEY, "
+            + FeedEntry.COLUMN_NAME_DATE + " DATE, "
+            + FeedEntry.COLUMN_NAME_STATUS + " INTEGER DEFAULT 0 )";
+
+    public static final String SQL_CREATE_TABLE_PLANNER_SUBJECTS = "CREATE TABLE " + FeedEntry.TABLE_NAME_PLANNER_SUBJECTS + " ("
+            + FeedEntry._ID + " INTEGER PRIMARY KEY, "
+            + FeedEntry.COLUMN_NAME_BP_ID + " INTEGER, "
+            + FeedEntry.COLUMN_NAME_SUBJECT + " INTEGER, "
+            + "FOREIGN KEY (" + FeedEntry.COLUMN_NAME_BP_ID + ") REFERENCES " + FeedEntry.TABLE_NAME_BUNK_PLANNER + "(" + FeedEntry._ID + "), "
+            + "FOREIGN KEY (" + FeedEntry.COLUMN_NAME_SUBJECT + ") REFERENCES " + FeedEntry.TABLE_NAME_SUBJECTS + "(" + FeedEntry._ID + "))";
+
     public static final String SQL_DELETE_ATTENDANCE = "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME_ATTENDANCE;
     public static final String SQL_DELETE_TIMETABLE = "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME_TIMETABLE;
     public static final String SQL_DELETE_SUBJECTS = "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME_SUBJECTS;
+    public static final String SQL_DELETE_BUNK_PLANNER = "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME_BUNK_PLANNER;
+    public static final String SQL_DELETE_PLANNER_SUBJECTS = "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME_PLANNER_SUBJECTS;
     private Context ref;
     public class DBHandler extends SQLiteOpenHelper {
 
@@ -74,10 +92,15 @@ public class DBHelper {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            db.execSQL(SQL_DELETE_ATTENDANCE);
+            /*db.execSQL(SQL_DELETE_ATTENDANCE);
             db.execSQL(SQL_DELETE_TIMETABLE);
             db.execSQL(SQL_DELETE_SUBJECTS);
-            onCreate(db);
+            onCreate(db);*/
+            if(newVersion == 2) {
+                db.execSQL(SQL_CREATE_TABLE_BUNK_PLANNER);
+                db.execSQL(SQL_CREATE_TABLE_PLANNER_SUBJECTS);
+                System.out.println("Added two tables.");
+            }
         }
 
         @Override

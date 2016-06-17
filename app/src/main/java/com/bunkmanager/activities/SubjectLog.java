@@ -34,7 +34,7 @@ public class SubjectLog extends AppCompatActivity {
         viewPager.setAdapter(new LogPagerAdapter(getSupportFragmentManager(), getIntent().getIntExtra("subjectID", 1)));
         tabLayout.setupWithViewPager(viewPager);
         tabLayout.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.white));
-        //tabLayout.setTabTextColors(ContextCompat.getColorStateList(this, R.color.selector));
+        tabLayout.setTabTextColors(ContextCompat.getColorStateList(this, R.color.selector));
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
