@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
@@ -54,9 +55,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        /*if(isTablet()) {
-            setTheme(R.style.AppTheme_tablet);
-        }*/
         setContentView(R.layout.activity_main);
         ArrayList<Subjects> subs =new ArrayList<>();
         dbHelper = new DBHelper(this);
@@ -146,8 +144,27 @@ public class MainActivity extends AppCompatActivity {
                         mPager.setCurrentItem(getDayInt());
                         return true;
                     case R.id.bunkPlanner:
-                        Intent planner = new Intent(MainActivity.this, BunkPlanner.class);
-                        startActivity(planner);
+                        /*int val = 0;
+                        try {
+                            dbHelper.open();
+                            val = dbHelper.getLectureCount();
+                            dbHelper.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        if(val > 0) {*/
+                            Intent planner = new Intent(MainActivity.this, BunkPlanner.class);
+                            startActivity(planner);
+                        /*} else {
+                            Snackbar.make(findViewById(R.id.drawer_layout),"First set up a time table", Snackbar.LENGTH_LONG)
+                                    .setAction("SET", new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            mPager.setCurrentItem(2);
+                                        }
+                                    })
+                                    .show();
+                        }*/
                         return true;
                     case R.id.notificationSettings:
                         Intent intent1 = new Intent(MainActivity.this, Settings.class);
@@ -302,24 +319,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
-
-    /*public boolean isTablet() {
-        try {
-            // Compute screen size
-            DisplayMetrics dm = getResources().getDisplayMetrics();
-            float screenWidth  = dm.widthPixels / dm.xdpi;
-            float screenHeight = dm.heightPixels / dm.ydpi;
-            double size = Math.sqrt(Math.pow(screenWidth, 2) +
-                    Math.pow(screenHeight, 2));
-            // Tablet devices should have a screen size greater than 6 inches
-            return size >= 7;
-        } catch(Throwable t) {
-            return false;
-        }
-
-    }
-*/
-
 
 }
 

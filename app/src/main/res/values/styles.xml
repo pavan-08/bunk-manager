@@ -11,7 +11,7 @@
         <item name="colorPrimaryDark">#303F9F</item>
         <item name="colorAccent">@color/accent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-
+        <item name="android:actionBarTheme">@style/Theme.AppCompat.Light.DarkActionBar</item>
         <item name="android:navigationBarColor">#303F9F</item>
 
     </style>

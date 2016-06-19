@@ -2,14 +2,17 @@ package com.bunkmanager.activities;
 
 import android.app.DatePickerDialog;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,7 +21,9 @@ import android.widget.TextView;
 
 import com.bunkmanager.R;
 import com.bunkmanager.adapters.PlannerRecyclerAdapter;
+import com.bunkmanager.helpers.DBHelper;
 
+import java.sql.SQLException;
 import java.util.Calendar;
 
 public class BunkPlanner extends AppCompatActivity {
@@ -28,6 +33,8 @@ public class BunkPlanner extends AppCompatActivity {
     private FloatingActionButton fab;
     private TextView textView;
     private View.OnClickListener planBunk;
+    private DBHelper dbHelper;
+    private PlannerRecyclerAdapter plannerRecyclerAdapter;
     private static final String message = "Bunk Planner will help you bunk a day previously planned.\n" +
             "It guides daily about which lectures to attend to be able to bunk on said date.\n" +
             "It will also point out if a planned bunk is impossible.";
@@ -35,16 +42,22 @@ public class BunkPlanner extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.material_indigo_700));
+        }
         setContentView(R.layout.activity_bunk_planner);
         toolbar = (Toolbar) findViewById(R.id.planner_toolbar);
         fab = (FloatingActionButton) findViewById(R.id.planner_fab);
         recyclerView = (RecyclerView) findViewById(R.id.planner_recycler_view);
         textView = (TextView) findViewById(R.id.planner_textview);
+        dbHelper = new DBHelper(this);
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        recyclerView.setAdapter(new PlannerRecyclerAdapter(this));
+        plannerRecyclerAdapter = new PlannerRecyclerAdapter(this);
+        plannerRecyclerAdapter.setItems();
+        recyclerView.setAdapter(plannerRecyclerAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         planBunk = new View.OnClickListener() {
@@ -57,7 +70,18 @@ public class BunkPlanner extends AppCompatActivity {
                 DatePickerDialog datePickerDialog = new DatePickerDialog(BunkPlanner.this, new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker datePicker, int year, int monthOfYear, int dayOfMonth) {
-                        //TODO: store in database
+                        Calendar calendar = Calendar.getInstance();
+                        calendar.set(year, monthOfYear, dayOfMonth);
+                        try {
+                            dbHelper.open();
+                            dbHelper.addBunkPlan(calendar.getTimeInMillis());
+                            dbHelper.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        } finally {
+                            plannerRecyclerAdapter.setItems();
+                        }
+
                     }
                 }, mYear, mMonth, mDay);
                 datePickerDialog.show();
@@ -74,7 +98,7 @@ public class BunkPlanner extends AppCompatActivity {
         });
 
         textView.setText(message);
-        if(recyclerView.getChildCount() > 0) {
+        if(plannerRecyclerAdapter.getItemCount() > 0) {
             textView.setVisibility(View.INVISIBLE);
         }
     }

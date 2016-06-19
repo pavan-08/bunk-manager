@@ -1,5 +1,6 @@
 package com.bunkmanager.activities;
 
+import android.os.Build;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
@@ -24,6 +25,9 @@ public class SubjectLog extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.material_indigo_700));
+        }
         setContentView(R.layout.activity_subject_log);
 
         toolbar = (Toolbar) findViewById(R.id.log_toolbar);

@@ -6,13 +6,19 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.bunkmanager.entity.Attendance;
+import com.bunkmanager.entity.BunkPlanner;
 import com.bunkmanager.entity.Subjects;
 import com.bunkmanager.entity.TimeTable;
 
+import java.sql.Date;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * Created by Pavan on 2/24/2016.
@@ -24,7 +30,6 @@ public class DBHelper {
         public static final String TABLE_NAME_SUBJECTS = "subjects";
         public static final String TABLE_NAME_TIMETABLE = "time_table";
         public static final String TABLE_NAME_BUNK_PLANNER = "bunk_planner";
-        public static final String TABLE_NAME_PLANNER_SUBJECTS = "planner_subjects";
         public static final String COLUMN_NAME_SNAME = "name";
         public static final String COLUMN_NAME_LIMIT = "percent";
         public static final String COLUMN_NAME_LECTURE = "lecture";
@@ -32,7 +37,6 @@ public class DBHelper {
         public static final String COLUMN_NAME_TIMESTAMP = "timestamp";
         public static final String COLUMN_NAME_DAY = "day";
         public static final String COLUMN_NAME_STATUS = "status";
-        public static final String COLUMN_NAME_BP_ID = "bp_id";
         public static final String COLUMN_NAME_DATE = "date";
     }
 
@@ -63,18 +67,10 @@ public class DBHelper {
             + FeedEntry.COLUMN_NAME_DATE + " DATE, "
             + FeedEntry.COLUMN_NAME_STATUS + " INTEGER DEFAULT 0 )";
 
-    public static final String SQL_CREATE_TABLE_PLANNER_SUBJECTS = "CREATE TABLE " + FeedEntry.TABLE_NAME_PLANNER_SUBJECTS + " ("
-            + FeedEntry._ID + " INTEGER PRIMARY KEY, "
-            + FeedEntry.COLUMN_NAME_BP_ID + " INTEGER, "
-            + FeedEntry.COLUMN_NAME_SUBJECT + " INTEGER, "
-            + "FOREIGN KEY (" + FeedEntry.COLUMN_NAME_BP_ID + ") REFERENCES " + FeedEntry.TABLE_NAME_BUNK_PLANNER + "(" + FeedEntry._ID + "), "
-            + "FOREIGN KEY (" + FeedEntry.COLUMN_NAME_SUBJECT + ") REFERENCES " + FeedEntry.TABLE_NAME_SUBJECTS + "(" + FeedEntry._ID + "))";
-
     public static final String SQL_DELETE_ATTENDANCE = "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME_ATTENDANCE;
     public static final String SQL_DELETE_TIMETABLE = "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME_TIMETABLE;
     public static final String SQL_DELETE_SUBJECTS = "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME_SUBJECTS;
     public static final String SQL_DELETE_BUNK_PLANNER = "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME_BUNK_PLANNER;
-    public static final String SQL_DELETE_PLANNER_SUBJECTS = "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME_PLANNER_SUBJECTS;
     private Context ref;
     public class DBHandler extends SQLiteOpenHelper {
 
@@ -88,6 +84,7 @@ public class DBHelper {
             db.execSQL(SQL_CREATE_TABLE_SUBJECTS);
             db.execSQL(SQL_CREATE_TABLE_TIMETABLE);
             db.execSQL(SQL_CREATE_TABLE_ATTENDANCE);
+            db.execSQL(SQL_CREATE_TABLE_BUNK_PLANNER);
         }
 
         @Override
@@ -98,8 +95,6 @@ public class DBHelper {
             onCreate(db);*/
             if(newVersion == 2) {
                 db.execSQL(SQL_CREATE_TABLE_BUNK_PLANNER);
-                db.execSQL(SQL_CREATE_TABLE_PLANNER_SUBJECTS);
-                System.out.println("Added two tables.");
             }
         }
 
@@ -127,6 +122,10 @@ public class DBHelper {
     public void close() {
         if(this.dbHandler != null)
             dbHandler.close();
+    }
+
+    public SQLiteDatabase getSQLInstance() {
+        return sqLiteDatabase;
     }
 
     public long addSubject(String name, int limit) {
@@ -272,6 +271,14 @@ public class DBHelper {
         return String.valueOf(mCursor.getInt(0));
     }
 
+    public int getLectureCount() {
+        String sql = "SELECT COUNT(*) AS count FROM " + FeedEntry.TABLE_NAME_TIMETABLE;
+        Cursor mCursor = sqLiteDatabase.rawQuery(sql, null);
+        if(mCursor != null)
+            mCursor.moveToFirst();
+        return mCursor.getInt(0);
+    }
+
     public int updateLecture(ContentValues contentValues, int id) {
         return sqLiteDatabase.update(FeedEntry.TABLE_NAME_TIMETABLE, contentValues, FeedEntry._ID + "=" + id, null);
     }
@@ -365,6 +372,32 @@ public class DBHelper {
             } while (mCursor.moveToNext());
         }
         return attendanceList;
+    }
+
+    public long addBunkPlan(long milliseconds) {
+        ContentValues cv = new ContentValues();
+        SimpleDateFormat dateFormat = new SimpleDateFormat(
+                "yyyy-MM-dd", Locale.getDefault());
+        Date date = new Date(milliseconds);
+        cv.put(FeedEntry.COLUMN_NAME_DATE, dateFormat.format(date));
+        return sqLiteDatabase.insert(FeedEntry.TABLE_NAME_BUNK_PLANNER, null, cv);
+    }
+
+    public ArrayList<BunkPlanner> getBunkPlans() {
+        ArrayList<BunkPlanner> bunkPlans = new ArrayList<BunkPlanner>();
+        String sql = "SELECT * FROM " + FeedEntry.TABLE_NAME_BUNK_PLANNER + " ORDER BY " + FeedEntry.COLUMN_NAME_DATE + " DESC";
+        Cursor mCursor = sqLiteDatabase.rawQuery(sql, null);
+        if(mCursor != null && mCursor.getCount() != 0) {
+            mCursor.moveToFirst();
+            do {
+                BunkPlanner bp = new BunkPlanner();
+                bp.set_id(mCursor.getInt(0));
+                bp.setDate(mCursor.getString(1));
+                bp.setStatus(mCursor.getInt(2));
+                bunkPlans.add(bp);
+            } while(mCursor.moveToNext());
+        }
+        return bunkPlans;
     }
 
 
