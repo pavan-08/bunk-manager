@@ -1,32 +1,30 @@
 package com.bunkmanager.adapters;
 
-import android.animation.ObjectAnimator;
-import android.app.Activity;
-import android.database.Cursor;
-import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.SwipeDismissBehavior;
+import android.os.Build;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bunkmanager.R;
 import com.bunkmanager.entity.BunkPlanner;
 import com.bunkmanager.entity.PlannerSubjects;
 import com.bunkmanager.entity.Subjects;
 import com.bunkmanager.entity.TimeTable;
+import com.bunkmanager.helpers.AsyncBunkPlansEvaluator;
 import com.bunkmanager.helpers.DBHelper;
+import com.bunkmanager.interfaces.EventListener;
+import com.bunkmanager.interfaces.TaskListener;
 
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -39,21 +37,96 @@ import java.util.Locale;
  */
 public class PlannerRecyclerAdapter extends RecyclerView.Adapter<PlannerRecyclerAdapter.Holder> {
 
-    private Activity activity;
+    private AppCompatActivity activity;
     private LayoutInflater layoutInflater;
     private ArrayList<BunkPlanner> bunkPlanners = new ArrayList<BunkPlanner>();
     private ArrayList<PlannerSubjects> plannerSubjects = new ArrayList<PlannerSubjects>();
+    private ArrayList<Integer> deletePositions = new ArrayList<Integer>();
     private DBHelper dbHelper;
     private SimpleDateFormat sdf;
     private SimpleDateFormat sdfParser;
+    private ActionMode.Callback actionModeCallback;
+    private ActionMode actionMode;
+    private TaskListener taskListener;
+    private EventListener eventListener;
 
-    public PlannerRecyclerAdapter(Activity activity) {
-        this.activity = activity;
+    public PlannerRecyclerAdapter(AppCompatActivity appCompatActivity) {
+        this.activity = appCompatActivity;
         layoutInflater = LayoutInflater.from(activity);
         dbHelper = new DBHelper(activity);
         sdf = new SimpleDateFormat("EEE, MMM d, ''yy", Locale.getDefault());
         sdfParser = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        actionModeCallback = new ActionMode.Callback() {
+            @Override
+            public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                actionMode.getMenuInflater().inflate(R.menu.action_menu_bunk_planner, menu);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    activity.getWindow().setStatusBarColor(ContextCompat.getColor(activity, R.color.material_indigo_400));
+                }
+                return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                return false;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mActionMode, MenuItem menuItem) {
+                switch(menuItem.getItemId()) {
+                    case R.id.planner_select_all:
+                        changeSelectionAll(true);
+                        actionMode.setTitle(String.valueOf(bunkPlanners.size()));
+                        break;
+                    case R.id.planner_delete:
+                        deleteSelected();
+                        break;
+                }
+                return true;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mActionMode) {
+                actionMode = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    activity.getWindow().setStatusBarColor(ContextCompat.getColor(activity, R.color.material_indigo_700));
+                }
+                changeSelectionAll(false);
+            }
+        };
+        eventListener = (EventListener)activity;
+        taskListener = new TaskListener() {
+            @Override
+            public void onTaskBegin() {
+                eventListener.setProgressBarVisibility(View.VISIBLE);
+                activity.getIntent().putExtra("paused", false);
+            }
+
+            @Override
+            public void onTaskCompleted() {
+                actionMode.finish();
+                eventListener.setProgressBarVisibility(View.GONE);
+                activity.getIntent().putExtra("paused", true);
+                int x = 0;
+                for(int i : deletePositions) {
+                    bunkPlanners.remove(i);
+                    for(int j = x; j < deletePositions.size(); j++) {
+                        if(deletePositions.get(j) > i) {
+                            deletePositions.set(j, deletePositions.get(j) - 1);
+                        }
+                    }
+                    notifyItemRemoved(i);
+                    x++;
+                }
+                deletePositions.clear();
+                setItems();
+                if(getItemCount() == 0) {
+                    eventListener.setTextVisibility(View.VISIBLE);
+                }
+            }
+        };
     }
+
 
     @Override
     public PlannerRecyclerAdapter.Holder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -68,6 +141,11 @@ public class PlannerRecyclerAdapter extends RecyclerView.Adapter<PlannerRecycler
         } catch (ParseException e) {
             e.printStackTrace();
             holder.date.setText(bunkPlanners.get(position).getDate());
+        }
+        if(bunkPlanners.get(position).isSelected()) {
+            holder.cardView.setBackgroundColor(ContextCompat.getColor(activity, R.color.indigo_highlight));
+        } else {
+            holder.cardView.setBackgroundColor(ContextCompat.getColor(activity, android.R.color.white));
         }
         if(bunkPlanners.get(position).isExpanded()) {
             holder.toggleContent.setImageResource(R.drawable.ic_expand_less_black_24dp);
@@ -85,14 +163,85 @@ public class PlannerRecyclerAdapter extends RecyclerView.Adapter<PlannerRecycler
         });
         ((GradientDrawable)holder.circle.getBackground()).setColor(ContextCompat.getColor(activity, computeColor(holder.getAdapterPosition())));
         ((GradientDrawable)holder.lower.getBackground()).setColor(ContextCompat.getColor(activity, computeColor(holder.getAdapterPosition())));
-        ((GradientDrawable)holder.upper.getBackground()).setColor(ContextCompat.getColor(activity, computeColor(holder.getAdapterPosition() - 1)));
+        ((GradientDrawable)holder.upper.getBackground()).setColor(ContextCompat.getColor(activity, computeColor(holder.getAdapterPosition())));
+        holder.cardView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if(actionMode == null) {
+                    actionMode = activity.startSupportActionMode(actionModeCallback);
+                    actionMode.setTitle(String.valueOf(1));
+                    bunkPlanners.get(holder.getAdapterPosition()).setSelected(true);
+                    notifyItemChanged(holder.getAdapterPosition());
+                    return true;
+                }
+                return false;
+            }
+        });
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(actionMode != null) {
+                    if(bunkPlanners.get(holder.getAdapterPosition()).isSelected()) {
+                        bunkPlanners.get(holder.getAdapterPosition()).setSelected(false);
+                        actionMode.setTitle(String.valueOf(Integer.parseInt(actionMode.getTitle().toString()) - 1));
+                    } else {
+                        bunkPlanners.get(holder.getAdapterPosition()).setSelected(true);
+                        actionMode.setTitle(String.valueOf(Integer.parseInt(actionMode.getTitle().toString()) + 1));
+                    }
+                    if(isNoneSelected()) {
+                        actionMode.finish();
+                    }
+                    notifyItemChanged(holder.getAdapterPosition());
+                }
+            }
+        });
     }
+
+    private boolean isNoneSelected() {
+        for (BunkPlanner bp :
+                bunkPlanners) {
+            if (bp.isSelected()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void changeSelectionAll(boolean selected) {
+        for(BunkPlanner bp: bunkPlanners) {
+            bp.setSelected(selected);
+        }
+        notifyItemRangeChanged(0, bunkPlanners.size());
+    }
+
+    private void deleteSelected() {
+        ArrayList<Integer> ids = new ArrayList<Integer>();
+        deletePositions.clear();
+        int i = 0;
+        for(BunkPlanner bp: bunkPlanners) {
+            if(bp.isSelected()) {
+                ids.add(bp.get_id());
+                deletePositions.add(i);
+            }
+            i++;
+        }
+        try {
+            dbHelper.open();
+            dbHelper.deleteBunkPlans(ids);
+            dbHelper.close();
+            new AsyncBunkPlansEvaluator(taskListener, activity).execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
     private int computeColor(int adapterPosition) {
         adapterPosition = adapterPosition > -1 ? adapterPosition : 0;
         switch (bunkPlanners.get(adapterPosition).getStatus()) {
             case 0:
-                return R.color.material_indigo;
+                return R.color.material_orange;
             case 1:
                 return R.color.material_green;
             case -1:

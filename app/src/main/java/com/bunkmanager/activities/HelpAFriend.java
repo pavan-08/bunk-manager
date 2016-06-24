@@ -3,11 +3,13 @@ package com.bunkmanager.activities;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
@@ -39,6 +41,9 @@ public class HelpAFriend extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_help_afriend);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.material_indigo_700));
+        }
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         fabShare = (FloatingActionButton) findViewById(R.id.fab);
         calculate = (AppCompatButton) findViewById(R.id.help_calculate);
@@ -118,7 +123,9 @@ public class HelpAFriend extends AppCompatActivity {
             public void onClick(View view) {
                 if(canShare) {
                     screenshot = new Screenshot(ssFrame);
+                    calculate.setVisibility(View.GONE);
                     Bitmap bitmap = screenshot.snap();
+                    calculate.setVisibility(View.VISIBLE);
                     //save in cache
                     try {
 
@@ -165,6 +172,14 @@ public class HelpAFriend extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(HelpAFriend.this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
     }
 
 }

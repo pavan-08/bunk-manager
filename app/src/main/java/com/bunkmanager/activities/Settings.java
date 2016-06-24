@@ -1,26 +1,38 @@
 package com.bunkmanager.activities;
 
+import android.animation.ObjectAnimator;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
+import android.widget.ViewSwitcher;
 
 import com.bunkmanager.R;
+import com.bunkmanager.helpers.BunkPlanNotifier;
 import com.bunkmanager.helpers.notify;
+import com.bunkmanager.helpers.onBootReceiver;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -32,6 +44,19 @@ import java.util.Calendar;
 
 public class Settings extends AppCompatActivity {
 
+    private SwitchCompat mswitch, soundSwitch, vibrateSwitch;
+    private TextView reminderTime, bunkPlanTime;
+    private RelativeLayout soundLayout, vibrateLayout, bunkPlanLayout;
+    private TextSwitcher textSwitcher;
+    private AppCompatImageButton bunkPlanExpand;
+    public static final String PREF_SOUND = "sound";
+    public static final String PREF_VIBRATE = "vibrate";
+    private SharedPreferences sp;
+    private SharedPreferences.Editor spe;
+    private static final String bunkDetail = "Bunk Predictor works internally on data from Bunk Planner.\n" +
+            "So there will be no prediction notifications unless there is atleast one plan in Bunk Planner.\n" +
+            "Click to set a different time.";
+    private boolean expanded = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,37 +102,34 @@ public class Settings extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        final TextView tv=(TextView)findViewById(R.id.tv);
-        tv.setText("Reminder notifications will trigger daily at the time chosen by you"
-        +" till kept on. It is simply a notification to tell you that the attendance has to be recorded for that day."+
-        " So, preferably, set a time post your regular college/school hours.");
-        final TextView text =(TextView)findViewById(R.id.textView10);
-        final ImageView img=(ImageView)findViewById(R.id.imageView);
-        final TextView text1=(TextView)findViewById(R.id.textView11);
-        final SwitchCompat mswitch=(SwitchCompat)findViewById(R.id.switch1);
+        reminderTime =(TextView)findViewById(R.id.textView11);
+        mswitch=(SwitchCompat)findViewById(R.id.switch1);
+        soundLayout = (RelativeLayout) findViewById(R.id.relative_sound);
+        vibrateLayout = (RelativeLayout) findViewById(R.id.relative_vibrate);
+        soundSwitch = (SwitchCompat) findViewById(R.id.switch_sound);
+        vibrateSwitch = (SwitchCompat) findViewById(R.id.switch_vibrate);
+        bunkPlanTime = (TextView) findViewById(R.id.textView_bunk_time);
+        bunkPlanLayout = (RelativeLayout) findViewById(R.id.relative_bunk_plan);
+        textSwitcher = (TextSwitcher) findViewById(R.id.textSwitcher_bunk_detail);
+        bunkPlanExpand = (AppCompatImageButton) findViewById(R.id.expand_bunk_plan);
+        sp = getSharedPreferences(BunkPlanNotifier.PREF_FILE, Context.MODE_PRIVATE);
+
         Toolbar toolbar=(Toolbar)findViewById(R.id.notification_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         if(state.equals("")||state.equals("off")){
             mswitch.setChecked(false);
-            img.setImageResource(R.mipmap.notification_off);
-            text1.setText("No reminder set");
-            text.setText("Off");
-
+            reminderTime.setText("Daily reminder notification to record");
         } else if(state.equals("on")){
             mswitch.setChecked(true);
-            img.setImageResource(R.mipmap.notification_on);
-            text1.setText("Reminder set, daily at "+String.format("%02d:%02d",Integer.parseInt(sHour),Integer.parseInt(sMinute)));
-            text.setText("On");
+            reminderTime.setText("Reminder set, daily at "+String.format("%02d:%02d",Integer.parseInt(sHour),Integer.parseInt(sMinute)));
         }
 
         mswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-
-
                     final View layout = getLayoutInflater().inflate(R.layout.time_pick, null);
                     final TimePicker time = (TimePicker) layout.findViewById(R.id.timePicker);
                     time.setIs24HourView(true);
@@ -125,16 +147,14 @@ public class Settings extends AppCompatActivity {
                             Calendar calendar = Calendar.getInstance();
                             calendar.set(Calendar.HOUR_OF_DAY, hour);
                             calendar.set(Calendar.MINUTE, minute);
-                            calendar.set(Calendar.SECOND, 00);
+                            calendar.set(Calendar.SECOND, 0);
                             if(calendar.getTimeInMillis()<= System.currentTimeMillis()){
                                 alarm=calendar.getTimeInMillis()+(AlarmManager.INTERVAL_DAY);
                             } else{
                                 alarm=calendar.getTimeInMillis();
                             }
                             am.setRepeating(AlarmManager.RTC_WAKEUP, alarm, 24 * 60 * 60 * 1000, pendingIntent);
-                            text1.setText("Reminder set, daily at " + String.format("%02d:%02d", hour, minute));
-                            text.setText("On");
-                            img.setImageResource(R.mipmap.notification_on);
+                            reminderTime.setText("Reminder set, daily at " + String.format("%02d:%02d", hour, minute));
                         }
                     });
                     dialog.setNegativeButton("DISMISS", new DialogInterface.OnClickListener() {
@@ -148,14 +168,103 @@ public class Settings extends AppCompatActivity {
                 } else {
                     am.cancel(pendingIntent);
                     mSave("notify", "off", MODE_PRIVATE);
-                    text1.setText("No reminder" + " set");
-                    text.setText("Off");
-                    img.setImageResource(R.mipmap.notification_off);
+                    reminderTime.setText("Daily reminder notification to record");
                 }
-
             }
         });
+        soundSettings();
+        vibrationSettings();
+        bunkPlanSettings();
+    }
 
+    private void bunkPlanSettings() {
+        final int hour = sp.getInt(BunkPlanNotifier.PREF_HOUR, 5);
+        final int minute = sp.getInt(BunkPlanNotifier.PREF_MIN, 0);
+        bunkPlanTime.setText("Set at " + String.format("%02d:%02d", hour, minute) + " daily");
+        bunkPlanLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                TimePickerDialog tpd = new TimePickerDialog(Settings.this, new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker timePicker, int i, int i1) {
+                        spe = sp.edit();
+                        spe.putInt(BunkPlanNotifier.PREF_HOUR, i);
+                        spe.putInt(BunkPlanNotifier.PREF_MIN, i1);
+                        spe.apply();
+                        bunkPlanTime.setText("Set at " + String.format("%02d:%02d", i, i1) + " daily");
+                        onBootReceiver.setBunkPlanNotifierAlarm(Settings.this);
+                    }
+                }, hour, minute, true);
+                tpd.show();
+            }
+        });
+        textSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
+            @Override
+            public View makeView() {
+                TextView myText = new TextView(Settings.this);
+                //myText.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+                myText.setTextSize(16);
+                //myText.setTextColor(Color.BLUE);
+                return myText;
+            }
+        });
+        textSwitcher.setInAnimation(Settings.this, android.R.anim.fade_in);
+        textSwitcher.setOutAnimation(Settings.this, android.R.anim.fade_out);
+        bunkPlanExpand.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                expanded = !expanded;
+                if(expanded) {
+                    textSwitcher.setText(bunkDetail);
+                    ViewGroup.LayoutParams lp = textSwitcher.getLayoutParams();
+                    lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                    textSwitcher.setLayoutParams(lp);
+                    bunkPlanExpand.setImageResource(R.drawable.ic_expand_less_black_24dp);
+                } else {
+                    textSwitcher.setText("");
+                    ViewGroup.LayoutParams lp = textSwitcher.getLayoutParams();
+                    lp.height = 0;
+                    textSwitcher.setLayoutParams(lp);
+                    bunkPlanExpand.setImageResource(R.drawable.ic_expand_more_black_24dp);
+                }
+            }
+        });
+    }
+
+    private void vibrationSettings() {
+        vibrateSwitch.setChecked(sp.getBoolean(PREF_VIBRATE, true));
+        vibrateSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                spe = sp.edit();
+                spe.putBoolean(PREF_VIBRATE, isChecked);
+                spe.apply();
+            }
+        });
+        vibrateLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                vibrateSwitch.toggle();
+            }
+        });
+    }
+
+    private void soundSettings() {
+        soundSwitch.setChecked(sp.getBoolean(PREF_SOUND, true));
+        soundSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                spe = sp.edit();
+                spe.putBoolean(PREF_SOUND, isChecked);
+                spe.apply();
+            }
+        });
+        soundLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                soundSwitch.toggle();
+            }
+        });
     }
 
     public  void mSave(String file, String data, int mode){
@@ -190,4 +299,11 @@ public class Settings extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(Settings.this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+    }
 }

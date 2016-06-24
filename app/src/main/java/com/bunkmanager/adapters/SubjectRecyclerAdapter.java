@@ -66,7 +66,7 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
 
 
     @Override
-    public void onBindViewHolder(final SubjectRecyclerAdapter.Holder holder, final int position) {
+    public void onBindViewHolder(final SubjectRecyclerAdapter.Holder holder, int position) {
         final String data = mListData.get(position);
         final String per = percent.get(position);
         if(attend.size()>position) {
@@ -142,14 +142,14 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     try {
                                         dbHelper.open();
-                                        dbHelper.deleteSubject(ids.get(position));
+                                        dbHelper.deleteSubject(ids.get(holder.getAdapterPosition()));
                                         dbHelper.close();
-                                        ids.remove(position);
-                                        attend.remove(position);
-                                        miss.remove(position);
-                                        percent.remove(position);
-                                        mListData.remove(position);
-                                        notifyItemRemoved(position);
+                                        ids.remove(holder.getAdapterPosition());
+                                        attend.remove(holder.getAdapterPosition());
+                                        miss.remove(holder.getAdapterPosition());
+                                        percent.remove(holder.getAdapterPosition());
+                                        mListData.remove(holder.getAdapterPosition());
+                                        notifyItemRemoved(holder.getAdapterPosition());
                                     } catch (SQLException e) {
                                         e.printStackTrace();
                                     }
@@ -171,11 +171,11 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     try {
                                         dbHelper.open();
-                                        dbHelper.deleteAllAttendanceBySubject(ids.get(position));
+                                        dbHelper.deleteAllAttendanceBySubject(ids.get(holder.getAdapterPosition()));
                                         dbHelper.close();
-                                        miss.set(position, "0");
-                                        attend.set(position, "0");
-                                        notifyItemChanged(position);
+                                        miss.set(holder.getAdapterPosition(), "0");
+                                        attend.set(holder.getAdapterPosition(), "0");
+                                        notifyItemChanged(holder.getAdapterPosition());
                                     } catch (SQLException e) {
                                         e.printStackTrace();
                                     }
@@ -213,26 +213,26 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
                                     } else if (Integer.parseInt(Percent) > 100 || Integer.parseInt(Percent) < 0) {
                                         Toast.makeText(activity, "invalid percent limit", Toast.LENGTH_SHORT).show();
                                     } else {
-                                        mListData.set(position, subject);
-                                        percent.set(position, Percent);
+                                        mListData.set(holder.getAdapterPosition(), subject);
+                                        percent.set(holder.getAdapterPosition(), Percent);
                                         ContentValues cv = new ContentValues();
                                         cv.put(DBHelper.FeedEntry.COLUMN_NAME_SNAME,subject);
                                         cv.put(DBHelper.FeedEntry.COLUMN_NAME_LIMIT, Integer.parseInt(Percent));
                                         try {
                                             dbHelper.open();
-                                            dbHelper.updateSubject(cv, ids.get(position));
+                                            dbHelper.updateSubject(cv, ids.get(holder.getAdapterPosition()));
                                             dbHelper.close();
                                         } catch (SQLException e) {
                                             e.printStackTrace();
                                         }
-                                        notifyItemChanged(position);
+                                        notifyItemChanged(holder.getAdapterPosition());
                                     }
                                 }
                             });
                             add.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Toast.makeText(activity, "Canceled", Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(activity, "Canceled", Toast.LENGTH_SHORT).show();
                                 }
                             });
                             add.show();
@@ -247,8 +247,8 @@ public class SubjectRecyclerAdapter extends RecyclerView.Adapter<SubjectRecycler
             @Override
             public void onClick(View view) {
                 Intent subjectLogIntent = new Intent(activity, SubjectLog.class);
-                subjectLogIntent.putExtra("subjectID", ids.get(position));
-                subjectLogIntent.putExtra("subjectName", mListData.get(position));
+                subjectLogIntent.putExtra("subjectID", ids.get(holder.getAdapterPosition()));
+                subjectLogIntent.putExtra("subjectName", mListData.get(holder.getAdapterPosition()));
                 activity.startActivity(subjectLogIntent);
             }
         });

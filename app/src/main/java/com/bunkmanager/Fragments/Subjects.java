@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -73,7 +74,7 @@ public class Subjects extends Fragment {
         FAB.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(getActivity(), "Add Subject", Toast.LENGTH_SHORT).show();
+                Snackbar.make(view, "Add Subject", Snackbar.LENGTH_SHORT).show();
                 return true;
             }
         });
@@ -145,7 +146,7 @@ public class Subjects extends Fragment {
                 add.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(getActivity(), "Canceled", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getActivity(), "Canceled", Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -176,7 +177,7 @@ public class Subjects extends Fragment {
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
             @Override
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-                FAB.animate().translationY(-2.5f*verticalOffset);
+                FAB.animate().translationY(-3f*verticalOffset);
             }
         });
     }

@@ -15,7 +15,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/material_indigo"
             app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:title="Reminder Notification"
+            app:title="Settings"
             app:titleTextAppearance="@style/Toolbar"
             class="android.support.v7.widget.Toolbar"
             android:elevation="5dp"
@@ -28,42 +28,199 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:paddingTop="@dimen/toolbar_padding"
-        android:layout_height="match_parent">
-    <RelativeLayout
-        android:layout_width="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
-        android:layout_height="?attr/actionBarSize"
-        android:id="@+id/relativeLayout2"
-        android:background="#5C6BC0"
-        >
-
-        <android.support.v7.widget.SwitchCompat
-            android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/switch1"
-            android:layout_centerVertical="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginRight="16dp"
-            android:layout_marginEnd="16dp"
-             />
-        <TextView android:text="On"
-            android:layout_width="wrap_content"
+            android:text="Features"
+            android:id="@+id/section_heading"
+            android:textColor="@color/accent"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:padding="15dp"/>
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textColor="#fff"
-            android:id="@+id/textView10"
-            android:layout_marginLeft="70dp"
-            android:layout_marginStart="70dp"
-            android:layout_centerVertical="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
+            android:layout_below="@id/section_heading"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:id="@+id/relative_reminder"
+            >
+            <android.support.v7.widget.SwitchCompat
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/switch1"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginRight="16dp"
+                android:layout_marginEnd="16dp"
+                 />
+            <TextView
+                android:text="Daily reminder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/textView10"
+                android:layout_marginLeft="30dp"
+                android:layout_marginStart="30dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Daily reminder notification to record"
+                android:id="@+id/textView11"
+                android:textSize="15sp"
+                android:layout_below="@id/textView10"
+                android:layout_alignLeft="@id/textView10"
+                android:layout_alignStart="@id/textView10"
+                android:paddingBottom="5dp"
+                />
 
-    </RelativeLayout>
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/relative_bunk_plan"
+            android:layout_below="@id/relative_reminder"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackground"
+            >
+            <TextView
+                android:text="Bunk Predictor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/textView_bunk_plan"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="30dp"
+                android:layout_marginStart="30dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Set at 05:00 daily"
+                android:id="@+id/textView_bunk_time"
+                android:textSize="15sp"
+                android:layout_below="@id/textView_bunk_plan"
+                android:layout_alignLeft="@id/textView_bunk_plan"
+                android:layout_alignStart="@id/textView_bunk_plan"
+                />
 
+            <android.support.v7.widget.AppCompatImageButton
+                android:id="@+id/expand_bunk_plan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@android:color/transparent"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:src="@drawable/ic_expand_more_black_24dp"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                />
+            <TextSwitcher
+                android:layout_marginTop="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/textSwitcher_bunk_detail"
+                android:layout_below="@id/textView_bunk_time"
+                android:layout_alignLeft="@id/textView_bunk_plan"
+                android:layout_alignStart="@id/textView_bunk_plan"
+                android:layout_toLeftOf="@id/expand_bunk_plan"
+                android:layout_toStartOf="@id/expand_bunk_plan"
+                />
 
-    <ScrollView
-        android:layout_below="@id/relativeLayout2"
+        </RelativeLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Notifications"
+            android:id="@+id/notification_heading"
+            android:textColor="@color/accent"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_below="@id/relative_bunk_plan"
+            android:paddingBottom="5dp"
+            android:paddingTop="15dp"
+            android:paddingLeft="15dp"
+            />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/relative_sound"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:layout_below="@id/notification_heading"
+            >
+            <android.support.v7.widget.SwitchCompat
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/switch_sound"
+                android:checked="true"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginRight="16dp"
+                android:layout_marginEnd="16dp"
+                />
+            <TextView
+                android:text="Sound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:layout_centerVertical="true"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/textView_sound"
+                android:layout_marginLeft="30dp"
+                android:layout_marginStart="30dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true" />
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/relative_vibrate"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:layout_below="@id/relative_sound"
+            >
+            <android.support.v7.widget.SwitchCompat
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/switch_vibrate"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginRight="16dp"
+                android:layout_marginEnd="16dp"
+                android:checked="true"
+                />
+            <TextView
+                android:text="Vibration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:layout_centerVertical="true"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/textView_vibrate"
+                android:layout_marginLeft="30dp"
+                android:layout_marginStart="30dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true" />
+        </RelativeLayout>
+    <!--<ScrollView
+
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
     <RelativeLayout
@@ -88,18 +245,8 @@
         android:layout_centerVertical="true"
          />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Daily reminder notification to record"
-        android:id="@+id/textView11"
-        android:textColor="#9e9e9e"
-        android:textSize="15sp"
-        android:layout_below="@+id/imageView"
-        android:layout_centerHorizontal="true"/>
         </RelativeLayout>
-    </ScrollView>
+    </ScrollView>-->
     </RelativeLayout>
 </android.support.design.widget.CoordinatorLayout>
 

@@ -6,6 +6,8 @@ package com.bunkmanager.entity;
 public class TimeTable {
     int id;
     String day;
+    int status;
+    Subjects subject;
 
     public int getId() {
         return id;
@@ -31,5 +33,11 @@ public class TimeTable {
         this.subject = subject;
     }
 
-    Subjects subject;
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 }

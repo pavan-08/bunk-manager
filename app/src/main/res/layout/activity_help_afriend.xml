@@ -4,29 +4,30 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     tools:context="com.bunkmanager.activities.HelpAFriend">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="5dp"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:elevation="5dp">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_marginTop="@dimen/toolbar_padding"
             android:layout_width="match_parent"
+            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:title="Notification Settings"
+            app:titleTextAppearance="@style/Toolbar"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary" />
+            android:background="@color/material_indigo" />
 
     </android.support.design.widget.AppBarLayout>
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:background="@color/material_indigo_50"
         android:layout_height="match_parent"
-        android:paddingTop="?attr/actionBarSize"
-        android:layout_marginTop="@dimen/toolbar_padding">
+        android:layout_marginTop="?attr/actionBarSize"
+        android:paddingTop="@dimen/toolbar_padding">
         <RelativeLayout
             android:id="@+id/help_relative_layout"
             android:layout_width="match_parent"
@@ -83,7 +84,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
-                    android:hint="Attendance requirement"/>
+                    android:hint="Attendance requirement (%)"/>
             </android.support.design.widget.TextInputLayout>
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/help_calculate"

@@ -2,14 +2,20 @@ package com.bunkmanager.activities;
 
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
@@ -20,9 +26,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.bunkmanager.helpers.BunkPlanNotifier;
 import com.bunkmanager.helpers.CustomDrawerLayout;
 import com.bunkmanager.helpers.DBHelper;
 import com.bunkmanager.R;
@@ -32,6 +40,8 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
 
 import com.bunkmanager.entity.Subjects;
 
@@ -43,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private ViewPagerAdapter adapter;
     private TabLayout mTabHost;
     private EditText Percent;
+    private TextToSpeech tts;
     private Toolbar mToolbar;
     private CustomDrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -120,6 +131,116 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        tts = new TextToSpeech(MainActivity.this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int i) {
+                tts.setLanguage(Locale.getDefault());
+            }
+        });
+        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String s) {
+                Snackbar.make(drawerLayout, "Set volume up", Snackbar.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onDone(String s) {
+
+            }
+
+            @Override
+            public void onError(String s) {
+                tts.shutdown();
+            }
+        });
+        tts.setSpeechRate(0.9f);
+    }
+
+    @Override
+    protected void onPause() {
+        if(tts != null) {
+            tts.stop();
+        }
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if(tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        super.onDestroy();
+    }
+
+    private boolean navigateLogic(int itemID) {
+        switch (itemID){
+            case R.id.getStarted:
+                mPager.setCurrentItem(1);
+                return true;
+            case R.id.subjects:
+                mPager.setCurrentItem(0);
+                return true;
+            case R.id.timeTable:
+                mPager.setCurrentItem(getDayInt());
+                return true;
+            case R.id.bunkPlanner:
+                Intent planner = new Intent(MainActivity.this, BunkPlanner.class);
+                startActivity(planner);
+                return true;
+            case R.id.bunkPrediction:
+                SharedPreferences sp = getSharedPreferences(BunkPlanNotifier.PREF_FILE, Context.MODE_PRIVATE);
+                String prediction = sp.getString(BunkPlanNotifier.PREF_PREDICTION, null);
+                if(prediction != null && !prediction.equals("")) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        tts.speak(prediction, TextToSpeech.QUEUE_FLUSH, null, "prediction");
+                    } else {
+                        HashMap<String, String> map = new HashMap<String, String>();
+                        map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "prediction");
+                        tts.speak(prediction, TextToSpeech.QUEUE_FLUSH, map);
+                    }
+                } else {
+                    Snackbar.make(drawerLayout, "Predictions work with bunk planner, plan something first.", Snackbar.LENGTH_INDEFINITE)
+                            .setAction("Plan", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    Intent planner = new Intent(MainActivity.this, BunkPlanner.class);
+                                    startActivity(planner);
+                                }
+                            })
+                            .show();
+                }
+                return true;
+            case R.id.notificationSettings:
+                Intent intent1 = new Intent(MainActivity.this, Settings.class);
+                startActivity(intent1);
+                return true;
+            case R.id.helpAFriend:
+                Intent helpAFriend = new Intent(MainActivity.this, HelpAFriend.class);
+                startActivity(helpAFriend);
+                return true;
+            case R.id.rateMe:
+                Uri uri = Uri.parse("market://details?id=" + getPackageName());
+                Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+                // To count with Play market backstack, After pressing back button,
+                // to taken back to our application, we need to add following flags to intent.
+                goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                        Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
+                        Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                try {
+                    startActivity(goToMarket);
+                    return true;
+                } catch (ActivityNotFoundException e) {
+                    startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("http://play.google.com/store/apps/details?id=" + getPackageName())));
+                    return true;
+                }
+
+            default:
+                Snackbar.make(drawerLayout, "Something's wrong.", Snackbar.LENGTH_SHORT).show();
+                return true;
+        }
     }
 
     private void setUpNavigationDrawer() {
@@ -128,73 +249,20 @@ public class MainActivity extends AppCompatActivity {
 
             // This method will trigger on item Click of navigation menu
             @Override
-            public boolean onNavigationItemSelected(MenuItem menuItem) {
-                menuItem.setChecked(true);
+            public boolean onNavigationItemSelected(final MenuItem menuItem) {
+                final boolean[] bool = {true};
                 if(!isDrawerLocked) {
-                    drawerLayout.closeDrawers();
-                }
-                switch (menuItem.getItemId()){
-                    case R.id.getStarted:
-                        mPager.setCurrentItem(1);
-                        return true;
-                    case R.id.subjects:
-                        mPager.setCurrentItem(0);
-                        return true;
-                    case R.id.timeTable:
-                        mPager.setCurrentItem(getDayInt());
-                        return true;
-                    case R.id.bunkPlanner:
-                        /*int val = 0;
-                        try {
-                            dbHelper.open();
-                            val = dbHelper.getLectureCount();
-                            dbHelper.close();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                    drawerLayout.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            bool[0] = navigateLogic(menuItem.getItemId());
                         }
-                        if(val > 0) {*/
-                            Intent planner = new Intent(MainActivity.this, BunkPlanner.class);
-                            startActivity(planner);
-                        /*} else {
-                            Snackbar.make(findViewById(R.id.drawer_layout),"First set up a time table", Snackbar.LENGTH_LONG)
-                                    .setAction("SET", new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            mPager.setCurrentItem(2);
-                                        }
-                                    })
-                                    .show();
-                        }*/
-                        return true;
-                    case R.id.notificationSettings:
-                        Intent intent1 = new Intent(MainActivity.this, Settings.class);
-                        startActivity(intent1);
-                        return true;
-                    case R.id.helpAFriend:
-                        Intent helpAFriend = new Intent(MainActivity.this, HelpAFriend.class);
-                        startActivity(helpAFriend);
-                        return true;
-                    case R.id.rateMe:
-                        Uri uri = Uri.parse("market://details?id=" + getPackageName());
-                        Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
-                        // To count with Play market backstack, After pressing back button,
-                        // to taken back to our application, we need to add following flags to intent.
-                        goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
-                                Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
-                                Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-                        try {
-                            startActivity(goToMarket);
-                            return true;
-                        } catch (ActivityNotFoundException e) {
-                            startActivity(new Intent(Intent.ACTION_VIEW,
-                                    Uri.parse("http://play.google.com/store/apps/details?id=" + getPackageName())));
-                            return true;
-                        }
-
-                    default:
-                        Toast.makeText(getApplicationContext(),"Somethings Wrong",Toast.LENGTH_SHORT).show();
-                        return true;
+                    }, 250);
+                } else {
+                    bool[0] = navigateLogic(menuItem.getItemId());
                 }
+                return bool[0];
             }
         });
 
@@ -231,27 +299,35 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getBaseContext(),"Sit back and review attendance,its Sunday!",Toast.LENGTH_LONG).show();
             return 0;
         }  else if(dateFormat.format(date).equals("Mon")){
-            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
             return 2;
         } else if(dateFormat.format(date).equals("Tue")){
-            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
             return 3;
         } else if(dateFormat.format(date).equals("Wed")){
-            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
             return 4;
         } else if(dateFormat.format(date).equals("Thu")){
-            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
             return 5;
         } else if(dateFormat.format(date).equals("Fri")){
-            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
             return 6;
         } else if(dateFormat.format(date).equals("Sat")){
-            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
             return 7;
         } else{
-            Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getBaseContext(),"Record attendance now",Toast.LENGTH_SHORT).show();
             return 1;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent bunkNotifier = new Intent(MainActivity.this, BunkPlanNotifier.class);
+        bunkNotifier.putExtra("notify", false);
+        sendBroadcast(bunkNotifier);
     }
 
     @Override
@@ -291,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
             alert.setNegativeButton("CANCEL",new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    Toast.makeText(getBaseContext(),"Canceled, no data lost",Toast.LENGTH_SHORT).show();
+                    Snackbar.make(drawerLayout, "Canceled, no data lost", Snackbar.LENGTH_SHORT).show();
                 }
             });
             alert.show();

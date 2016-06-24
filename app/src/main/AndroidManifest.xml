@@ -19,6 +19,7 @@
             android:label="@string/app_name" />
 
         <receiver android:name=".helpers.notify" />
+        <receiver android:name=".helpers.BunkPlanNotifier" />
         <receiver android:name=".helpers.onBootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -42,7 +43,7 @@
         <activity
             android:name=".activities.IntroScreen"
             android:label="@string/app_name"
-            android:screenOrientation="portrait"
+            android:screenOrientation="locked"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -87,6 +88,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bunkmanager.activities.MainActivity" />
         </activity>
+        <activity
+            android:name=".activities.BunkPlannerDialogue"
+            android:theme="@style/AppTheme.UserDialog"
+            android:excludeFromRecents="true"></activity>
     </application>
 
 </manifest>

@@ -8,9 +8,11 @@ public class BunkPlanner {
     String date;
     int status;
     boolean expanded;
+    boolean selected;
 
     public BunkPlanner() {
         expanded = false;
+        selected = false;
     }
 
     public String getDate() {
@@ -47,5 +49,13 @@ public class BunkPlanner {
 
     public void toggleExpanded() {
         this.expanded = !this.expanded;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 }

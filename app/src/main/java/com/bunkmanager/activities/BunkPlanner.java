@@ -1,7 +1,10 @@
 package com.bunkmanager.activities;
 
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.database.sqlite.SQLiteConstraintException;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -12,21 +15,33 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.webkit.WebView;
 import android.widget.DatePicker;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bunkmanager.R;
 import com.bunkmanager.adapters.PlannerRecyclerAdapter;
+import com.bunkmanager.helpers.AsyncBunkPlansEvaluator;
+import com.bunkmanager.helpers.BunkPlanNotifier;
 import com.bunkmanager.helpers.DBHelper;
+import com.bunkmanager.helpers.onBootReceiver;
+import com.bunkmanager.interfaces.EventListener;
+import com.bunkmanager.interfaces.TaskListener;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 
-public class BunkPlanner extends AppCompatActivity {
+public class BunkPlanner extends AppCompatActivity implements EventListener{
 
     private RecyclerView recyclerView;
     private Toolbar toolbar;
@@ -34,10 +49,23 @@ public class BunkPlanner extends AppCompatActivity {
     private TextView textView;
     private View.OnClickListener planBunk;
     private DBHelper dbHelper;
+    private ProgressBar progressBar;
     private PlannerRecyclerAdapter plannerRecyclerAdapter;
+    private TaskListener taskListener;
+    private boolean isRefreshing = false;
+
+    SimpleDateFormat sdfParser;
     private static final String message = "Bunk Planner will help you bunk a day previously planned.\n" +
-            "It guides daily about which lectures to attend to be able to bunk on said date.\n" +
-            "It will also point out if a planned bunk is impossible.";
+            "It guides daily about which lectures to attend to be able to bunk on a planned date.\n" +
+            "It indicates the immediate possibility of bunking a planned date as well, which will update as attendance gets recorded daily.";
+
+    private static final String end = "<i>Note: All indications are subject to current attendance" +
+            " and may change as attendance changes or new bunks are planned.<br/>" +
+            "A red indicated bunk expects that you will attend not bunk that day and calculations " +
+            "ahead are done on this assumption.</i>";
+    private static final String details = "<p><font color=\"#4CAF50\"><b>Green</b></font> indicates a definitely possible bunk.</p>" +
+            "<p><font color=\"#FF9800\"><b>Orange</b></font> indicates a probable bunk.</p>" +
+            "<p><font color=\"#F44336\"><b>Red</b></font> indicates an impossible bunk.</p>";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,20 +78,60 @@ public class BunkPlanner extends AppCompatActivity {
         fab = (FloatingActionButton) findViewById(R.id.planner_fab);
         recyclerView = (RecyclerView) findViewById(R.id.planner_recycler_view);
         textView = (TextView) findViewById(R.id.planner_textview);
+        progressBar = (ProgressBar) findViewById(R.id.activity_loader);
+        sdfParser = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         dbHelper = new DBHelper(this);
+        taskListener = new TaskListener() {
+            @Override
+            public void onTaskBegin() {
+                isRefreshing = true;
+                progressBar.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onTaskCompleted() {
+                progressBar.setVisibility(View.GONE);
+                plannerRecyclerAdapter.setItems();
+                getIntent().putExtra("paused", true);
+                if(plannerRecyclerAdapter.getItemCount() > 0) {
+                    textView.setVisibility(View.INVISIBLE);
+                }
+                isRefreshing = false;
+            }
+        };
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
         plannerRecyclerAdapter = new PlannerRecyclerAdapter(this);
-        plannerRecyclerAdapter.setItems();
         recyclerView.setAdapter(plannerRecyclerAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            boolean hide=false;
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if(hide){
+                    fab.animate().translationY(3*fab.getHeight()).setInterpolator(new AccelerateInterpolator()).start();
+                } else{
+                    fab.animate().translationY(0).setInterpolator(new DecelerateInterpolator()).start();
+                }
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if(dy>8){
+                    hide=true;
+                } else if(dy<-5){
+                    hide=false;
+                }
+            }
+        });
 
         planBunk = new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Calendar c = Calendar.getInstance();
+            public void onClick(final View view) {
+                final Calendar c = Calendar.getInstance();
                 int mYear = c.get(Calendar.YEAR);
                 int mMonth = c.get(Calendar.MONTH);
                 int mDay = c.get(Calendar.DAY_OF_MONTH);
@@ -72,14 +140,29 @@ public class BunkPlanner extends AppCompatActivity {
                     public void onDateSet(DatePicker datePicker, int year, int monthOfYear, int dayOfMonth) {
                         Calendar calendar = Calendar.getInstance();
                         calendar.set(year, monthOfYear, dayOfMonth);
-                        try {
-                            dbHelper.open();
-                            dbHelper.addBunkPlan(calendar.getTimeInMillis());
-                            dbHelper.close();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        } finally {
-                            plannerRecyclerAdapter.setItems();
+                        if(getSharedPreferences(BunkPlanNotifier.PREF_FILE, Context.MODE_PRIVATE).getBoolean(BunkPlanNotifier.PREF_SET, false)) {
+                            onBootReceiver.setBunkPlanNotifierAlarm(BunkPlanner.this);
+                        }
+                        if(calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+                            Snackbar.make(view, "That's a Sunday. Enjoy.", Snackbar.LENGTH_SHORT)
+                                    .show();
+                        }else if (c.compareTo(calendar) < 0) {
+                            try {
+                                dbHelper.open();
+                                dbHelper.addBunkPlan(calendar.getTimeInMillis());
+                                dbHelper.close();
+                                new AsyncBunkPlansEvaluator(taskListener, BunkPlanner.this, sdfParser.format(calendar.getTime()), ">=").execute();
+                            } catch (SQLiteConstraintException e) {
+                                //System.out.println(e.toString());
+                                Snackbar.make(findViewById(R.id.planner_root),"That date is already planned.", Snackbar.LENGTH_SHORT).show();
+                            }
+                            catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            Snackbar.make(view, "Past is history. Future is a mystery. Hence it can be solved with a plan.", Snackbar.LENGTH_LONG)
+                                    .setAction("PLAN", planBunk)
+                                    .show();
                         }
 
                     }
@@ -98,11 +181,30 @@ public class BunkPlanner extends AppCompatActivity {
         });
 
         textView.setText(message);
-        if(plannerRecyclerAdapter.getItemCount() > 0) {
-            textView.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(!getIntent().getBooleanExtra("paused", false)) {
+            new AsyncBunkPlansEvaluator(taskListener, BunkPlanner.this).execute();
+        } else {
+            plannerRecyclerAdapter.setItems();
+            if(plannerRecyclerAdapter.getItemCount() > 0) {
+                textView.setVisibility(View.INVISIBLE);
+            }
         }
     }
 
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(BunkPlanner.this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_bunk_planner, menu);
@@ -117,7 +219,7 @@ public class BunkPlanner extends AppCompatActivity {
                 AlertDialog.Builder info = new AlertDialog.Builder(BunkPlanner.this);
                 info.setTitle("Bunk Planner");
                 info.setIcon(android.R.drawable.ic_menu_info_details);
-                info.setMessage(message);
+                info.setMessage(Html.fromHtml("<font size=\"4\" >" + details + "</br>" + end + "</font>"));
                 info.setNeutralButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
@@ -126,7 +228,22 @@ public class BunkPlanner extends AppCompatActivity {
                 });
                 info.show();
                 break;
+            case R.id.planner_refresh:
+                if(!isRefreshing) {
+                    new AsyncBunkPlansEvaluator(taskListener, BunkPlanner.this);
+                }
+                break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void setProgressBarVisibility(int visibility) {
+        progressBar.setVisibility(visibility);
+    }
+
+    @Override
+    public void setTextVisibility(int visibility) {
+        textView.setVisibility(visibility);
     }
 }

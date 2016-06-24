@@ -38,11 +38,11 @@ public class InfoRecyclerAdapter extends RecyclerView.Adapter<InfoRecyclerAdapte
         instructions.add("Now, in the navigation bar, hit on time table section.");
         instructions.add("Once here, use the floating '+' button to set a lecture of a subject on that day.");
         instructions.add("Prepare the timetable for the week in a similar fashion.");
-        instructions.add("Now, you're set, record attended and bunked lectures by hitting the green and red number buttons repectively and" +
+        instructions.add("Now, you're set, record attended and bunked lectures by hitting the green and red number buttons respectively and" +
                 " do a long press on the respective buttons to reduce count by 1.");
+        instructions.add("Click on a subject in Subjects section to view logs of attendance.");
         instructions.add("Long press in Subjects section on any subject to get more options.");
         instructions.add("Definitely the time tables and subjects change over time; long press on a lecture to see more options and at the top of the app, you have a master reset button.");
-        instructions.add("Can't remember to record daily? Never mind, check out the notifications section!");
         Holder holder=new Holder(item);
         return holder;
     }
@@ -62,7 +62,7 @@ public class InfoRecyclerAdapter extends RecyclerView.Adapter<InfoRecyclerAdapte
             holder.welcome.setVisibility(View.INVISIBLE);
             holder.intro.setVisibility(View.INVISIBLE);
             if(position==9){
-                String string="<br><br>developed by <i>Pavan R Chhatpar</i>";
+                String string="<br/>developed by <i>Pavan R Chhatpar</i><br/><p>pavanchhatpar@gmail.com</p>";
                 holder.instruction.setText(Html.fromHtml(string));
                 holder.number.setText("  ");
 

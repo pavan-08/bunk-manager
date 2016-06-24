@@ -11,6 +11,8 @@ import com.bunkmanager.helpers.DBHelper;
 import com.bunkmanager.R;
 import com.bunkmanager.entity.Subjects;
 
+import org.w3c.dom.Text;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -22,12 +24,13 @@ import java.util.ArrayList;
 public class IntroScreen extends Activity {
     private final int SPLASH_DISPLAY_LENGTH = 2000;
     private DBHelper dbHelper;
+    private TextView optimizing;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_intro_screen);
         dbHelper = new DBHelper(this);
-        final TextView optimizing = (TextView) findViewById(R.id.intro_optimize);
+        optimizing = (TextView) findViewById(R.id.intro_optimize);
         optimizing.setVisibility(View.INVISIBLE);
         if(checkIfOnFiles()) {
             optimizing.setVisibility(View.VISIBLE);
