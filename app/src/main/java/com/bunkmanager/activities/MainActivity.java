@@ -135,26 +135,30 @@ public class MainActivity extends AppCompatActivity {
         tts = new TextToSpeech(MainActivity.this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int i) {
-                tts.setLanguage(Locale.getDefault());
+                if(tts != null) {
+                    tts.setLanguage(Locale.getDefault());
+                }
             }
         });
-        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override
-            public void onStart(String s) {
-                Snackbar.make(drawerLayout, "Set volume up", Snackbar.LENGTH_LONG).show();
-            }
+        if(tts != null) {
+            tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                @Override
+                public void onStart(String s) {
+                    Snackbar.make(drawerLayout, "Set volume up", Snackbar.LENGTH_LONG).show();
+                }
 
-            @Override
-            public void onDone(String s) {
+                @Override
+                public void onDone(String s) {
 
-            }
+                }
 
-            @Override
-            public void onError(String s) {
-                tts.shutdown();
-            }
-        });
-        tts.setSpeechRate(0.9f);
+                @Override
+                public void onError(String s) {
+                    tts.shutdown();
+                }
+            });
+            tts.setSpeechRate(0.9f);
+        }
     }
 
     @Override
@@ -193,12 +197,23 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences sp = getSharedPreferences(BunkPlanNotifier.PREF_FILE, Context.MODE_PRIVATE);
                 String prediction = sp.getString(BunkPlanNotifier.PREF_PREDICTION, null);
                 if(prediction != null && !prediction.equals("")) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        tts.speak(prediction, TextToSpeech.QUEUE_FLUSH, null, "prediction");
+                    if(tts != null) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            tts.speak(prediction, TextToSpeech.QUEUE_FLUSH, null, "prediction");
+                        } else {
+                            HashMap<String, String> map = new HashMap<String, String>();
+                            map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "prediction");
+                            tts.speak(prediction, TextToSpeech.QUEUE_FLUSH, map);
+                        }
                     } else {
-                        HashMap<String, String> map = new HashMap<String, String>();
-                        map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "prediction");
-                        tts.speak(prediction, TextToSpeech.QUEUE_FLUSH, map);
+                        Snackbar.make(drawerLayout, "Something's wrong with your text to speech machine.", Snackbar.LENGTH_INDEFINITE)
+                                .setAction("OK", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+
+                                    }
+                                })
+                                .show();
                     }
                 } else {
                     Snackbar.make(drawerLayout, "Predictions work with bunk planner, plan something first.", Snackbar.LENGTH_INDEFINITE)

@@ -16,7 +16,7 @@
             android:layout_marginTop="@dimen/toolbar_padding"
             android:layout_width="match_parent"
             app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:title="Notification Settings"
+            app:title="@string/title_activity_help_afriend"
             app:titleTextAppearance="@style/Toolbar"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/material_indigo" />
