@@ -2,9 +2,9 @@ package com.bunkmanager.adapters;
 
 import android.app.Activity;
 import android.content.DialogInterface;
-import android.media.Image;
+import android.graphics.drawable.GradientDrawable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +14,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.bunkmanager.DBHelper;
+import com.bunkmanager.helpers.DBHelper;
 import com.bunkmanager.R;
 import com.bunkmanager.entity.TimeTable;
 
@@ -53,15 +53,22 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
     }
 
     @Override
-    public void onBindViewHolder(final TTRecyclerAdapter.Holder holder, final int position) {
+    public void onBindViewHolder(final TTRecyclerAdapter.Holder holder, int position) {
         holder.sub_name.setText(timeTables.get(position).getSubject().getName());
         holder.attended.setText(attended.get(position).toString());
         holder.missed.setText(missed.get(position).toString());
+        if(timeTables.get(position).getStatus() == 1) {
+            holder.status.setVisibility(View.VISIBLE);
+        } else {
+            holder.status.setVisibility(View.GONE);
+        }
         if(position == getItemCount() - 1) {
             holder.rectangle.setVisibility(View.INVISIBLE);
         } else {
             holder.rectangle.setVisibility(View.VISIBLE);
         }
+        ((GradientDrawable)holder.circle.getBackground()).setColor(ContextCompat.getColor(activity, R.color.material_indigo));
+        ((GradientDrawable)holder.rectangle.getBackground()).setColor(ContextCompat.getColor(activity, R.color.material_indigo));
         holder.attended.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -69,9 +76,9 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
                 i++;
                 try {
                     dbHelper.open();
-                    dbHelper.addAttendance(timeTables.get(position).getId(), 1, timeTables.get(position).getSubject().getId());
+                    dbHelper.addAttendance(timeTables.get(holder.getAdapterPosition()).getId(), 1, timeTables.get(holder.getAdapterPosition()).getSubject().getId());
                     dbHelper.close();
-                    attended.set(position, i);
+                    attended.set(holder.getAdapterPosition(), i);
                     holder.attended.setText(String.valueOf(i));
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -85,9 +92,9 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
                 i++;
                 try {
                     dbHelper.open();
-                    dbHelper.addAttendance(timeTables.get(position).getId(), 0, timeTables.get(position).getSubject().getId());
+                    dbHelper.addAttendance(timeTables.get(holder.getAdapterPosition()).getId(), 0, timeTables.get(holder.getAdapterPosition()).getSubject().getId());
                     dbHelper.close();
-                    missed.set(position, i);
+                    missed.set(holder.getAdapterPosition(), i);
                     holder.missed.setText(String.valueOf(i));
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -102,9 +109,9 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
                     i--;
                     try {
                         dbHelper.open();
-                        dbHelper.deleteAttendance(timeTables.get(position).getId(), 1);
+                        dbHelper.deleteAttendance(timeTables.get(holder.getAdapterPosition()).getId(), 1);
                         dbHelper.close();
-                        attended.set(position, i);
+                        attended.set(holder.getAdapterPosition(), i);
                         holder.attended.setText(String.valueOf(i));
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -121,9 +128,9 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
                     i--;
                     try {
                         dbHelper.open();
-                        dbHelper.deleteAttendance(timeTables.get(position).getId(), 0);
+                        dbHelper.deleteAttendance(timeTables.get(holder.getAdapterPosition()).getId(), 0);
                         dbHelper.close();
-                        missed.set(position, i);
+                        missed.set(holder.getAdapterPosition(), i);
                         holder.missed.setText(String.valueOf(i));
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -149,14 +156,14 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     try {
                                         dbHelper.open();
-                                        dbHelper.deleteAllAttendance(timeTables.get(position).getId());
-                                        dbHelper.deleteLecture(timeTables.get(position).getId());
+                                        dbHelper.deleteAllAttendance(timeTables.get(holder.getAdapterPosition()).getId());
+                                        dbHelper.deleteLecture(timeTables.get(holder.getAdapterPosition()).getId());
                                         dbHelper.close();
                                     } catch (SQLException e) {
                                         e.printStackTrace();
                                     }
-                                    removeLecture(position);
-                                    notifyItemRemoved(position);
+                                    removeLecture(holder.getAdapterPosition());
+                                    notifyItemRemoved(holder.getAdapterPosition());
                                 }
                             });
                             ask.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -164,13 +171,13 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     try {
                                         dbHelper.open();
-                                        dbHelper.deleteLecture(timeTables.get(position).getId());
+                                        dbHelper.deleteLecture(timeTables.get(holder.getAdapterPosition()).getId());
                                         dbHelper.close();
                                     } catch (SQLException e) {
                                         e.printStackTrace();
                                     }
-                                    removeLecture(position);
-                                    notifyItemRemoved(position);
+                                    removeLecture(holder.getAdapterPosition());
+                                    notifyItemRemoved(holder.getAdapterPosition());
                                 }
                             });
                             ask.show();
@@ -178,14 +185,14 @@ public class TTRecyclerAdapter extends RecyclerView.Adapter<TTRecyclerAdapter.Ho
                         } else if (options[which] == "Reset") {
                             try {
                                 dbHelper.open();
-                                dbHelper.deleteAllAttendance(timeTables.get(position).getId());
+                                dbHelper.deleteAllAttendance(timeTables.get(holder.getAdapterPosition()).getId());
                                 dbHelper.close();
                             } catch (SQLException e) {
                                 e.printStackTrace();
                             }
-                            attended.set(position, 0);
-                            missed.set(position, 0);
-                            notifyItemChanged(position);
+                            attended.set(holder.getAdapterPosition(), 0);
+                            missed.set(holder.getAdapterPosition(), 0);
+                            notifyItemChanged(holder.getAdapterPosition());
                         }
                     }
                 });

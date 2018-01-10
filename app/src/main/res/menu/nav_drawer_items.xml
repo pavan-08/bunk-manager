@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/groupFeatures"
+        android:checkableBehavior="single">
 
         <item
             android:id="@+id/getStarted"
@@ -19,8 +21,31 @@
             android:title="Time Table" />
 
         <item
+            android:id="@+id/bunkPlanner"
+            android:checked="false"
+            android:title="@string/title_activity_bunk_planner" />
+
+        <item
+            android:id="@+id/bunkPrediction"
+            android:checkable="false"
+            android:title="Bunk Prediction"/>
+
+        <item
+            android:id="@+id/helpAFriend"
+            android:checked="false"
+            android:title="@string/title_activity_help_afriend" />
+    </group>
+    <group
+        android:id="@+id/groupOther"
+        android:checkableBehavior="single">
+        <item
             android:id="@+id/notificationSettings"
             android:checked="false"
-            android:title="Notification Settings" />
+            android:title="@string/title_activity_settings" />
+
+        <item
+            android:id="@+id/rateMe"
+            android:checked="false"
+            android:title="Rate me" />
     </group>
 </menu>

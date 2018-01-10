@@ -47,6 +47,7 @@
         android:layout_height="wrap_content"
         android:text=" Instruction"
         android:textSize="18sp"
+        android:autoLink="email"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"

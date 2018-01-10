@@ -81,18 +81,18 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
             android:layout_marginTop="7dp"
             android:layout_marginBottom="7dp"
-            android:src="@drawable/center_circle"
+            android:background="@drawable/center_circle"
             android:id="@+id/centerCircle"/>
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="50dp"
-            android:src="@drawable/rectangle"
+            android:background="@drawable/rectangle"
             android:layout_below="@id/centerCircle"
-            android:paddingLeft="21dp"
+            android:layout_marginLeft="21dp"
             android:id="@+id/lowerRectangle"/>
 
         <TextView
@@ -113,7 +113,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text=""
+            android:text="Attend necessarily"
+            android:textColor="@color/material_red"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:visibility="gone"
             android:id="@+id/textView6"
             android:layout_below="@id/textView"
             android:layout_alignBottom="@+id/textView8"

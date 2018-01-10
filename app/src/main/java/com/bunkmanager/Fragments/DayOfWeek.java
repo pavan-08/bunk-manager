@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,7 +15,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bunkmanager.DBHelper;
+import com.bunkmanager.helpers.DBHelper;
 import com.bunkmanager.R;
 import com.bunkmanager.adapters.TTRecyclerAdapter;
 
@@ -78,7 +79,7 @@ public class DayOfWeek extends Fragment {
         FAB.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(getActivity(), "Add new lecture", Toast.LENGTH_SHORT).show();
+                Snackbar.make(view, "Add new lecture", Snackbar.LENGTH_SHORT).show();
                 return true;
             }
         });
@@ -101,7 +102,7 @@ public class DayOfWeek extends Fragment {
                 }
                 final CharSequence[] subjects = subNames.toArray(new CharSequence[subs.size()]);
                 if(subs.size()<1){
-                    Toast.makeText(getActivity(),"Add some subjects at tab, 'Subjects'",Toast.LENGTH_SHORT).show();
+                    Snackbar.make(view, "Add some subjects at the tab 'Subjects'.", Snackbar.LENGTH_SHORT).show();
                 } else {
                     final ArrayList<com.bunkmanager.entity.Subjects> finalSubs = (ArrayList<com.bunkmanager.entity.Subjects>)subs.clone();
                     dialog.setItems(subjects, new DialogInterface.OnClickListener() {
@@ -162,7 +163,7 @@ public class DayOfWeek extends Fragment {
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
             @Override
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-                FAB.animate().translationY(-2.5f*verticalOffset);
+                FAB.animate().translationY(-3f*verticalOffset);
             }
         });
     }
